@@ -1,6 +1,6 @@
 import type { BankAccount, CountryModule, Field, Gender } from '../core/types';
 import type { Rng } from '../core/rng';
-import { birthDate, email, pickGender, ascii, type BirthDate, type Gendered } from '../core/person';
+import { birthDate, email, pickGender, ascii, type BirthDate, type Gendered, pickBank, bankName } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { NAMES, surnameFor } from './names';
 import { postalAddress, type PostalAddressParts } from '../core/iso20022';
@@ -57,6 +57,7 @@ export function euroCountry(config: EuroCountryConfig): CountryModule {
     flag: config.flag,
     currency: 'EUR',
     group: 'Eurozone',
+    banks: config.banks.map(bankName),
     generate(rng, options) {
       const gender = pickGender(rng, options);
       const given = rng.pick(config.given[gender]);
@@ -67,7 +68,7 @@ export function euroCountry(config: EuroCountryConfig): CountryModule {
       const city = rng.pick(config.cities);
       const { lines, parts } = config.address(rng, rng.pick(config.streets), city);
 
-      const bank = rng.pick(config.banks);
+      const bank = pickBank(rng, config.banks, options);
       const { bban, domestic, bic: branchBic } = bank.generate(rng, city);
       const bic = branchBic ?? bank.bic;
       const iban = makeIban(config.code, bban);

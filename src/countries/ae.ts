@@ -1,6 +1,6 @@
 import type { CountryModule } from '../core/types';
 import type { Rng } from '../core/rng';
-import { birthDate, email, pickGender } from '../core/person';
+import { birthDate, email, pickGender, pickBank, bankName } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { luhnCheckDigit } from '../core/checks';
 import { postalAddress } from '../core/iso20022';
@@ -42,6 +42,7 @@ export const ae: CountryModule = {
   flag: '🇦🇪',
   currency: 'AED',
   group: 'Middle East & Africa',
+  banks: BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const origin = pickNationality(rng);
@@ -70,7 +71,7 @@ export const ae: CountryModule = {
     const idBody = '784' + dob.year + rng.digits(7);
     const emiratesId = idBody + luhnCheckDigit(idBody);
 
-    const bank = rng.pick(BANKS);
+    const bank = pickBank(rng, BANKS, options);
     const account = rng.digits(16);
     const iban = makeIban('AE', bank.code + account);
 

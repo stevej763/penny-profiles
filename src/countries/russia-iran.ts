@@ -1,5 +1,5 @@
 import type { CountryModule } from '../core/types';
-import { birthDate, email, pickGender } from '../core/person';
+import { birthDate, email, pickGender, pickBank, bankName } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { postalAddress } from '../core/iso20022';
 import { IR_FAMILY, IR_GIVEN, RU_FAMILY, RU_GIVEN, RU_PATRONYMIC } from './names';
@@ -51,6 +51,7 @@ export const ru: CountryModule = {
   flag: '🇷🇺',
   currency: 'RUB',
   group: 'Europe (non-euro)',
+  banks: RU_BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const g = gender === 'male' ? 0 : 1;
@@ -77,7 +78,7 @@ export const ru: CountryModule = {
     while (Number(snils) <= 1001998);
     snils += snilsCheck(snils);
 
-    const bank = rng.pick(RU_BANKS);
+    const bank = pickBank(rng, RU_BANKS, options);
     // 40817 = individual resident current account, 810 = RUB, then key digit, branch, account.
     const head = '40817810';
     const tail = rng.digits(4) + rng.digits(7);
@@ -167,6 +168,7 @@ export const ir: CountryModule = {
   flag: '🇮🇷',
   currency: 'IRR',
   group: 'Middle East & Africa',
+  banks: IR_BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const [givenFa, given] = rng.pick(IR_GIVEN[gender]);
@@ -186,7 +188,7 @@ export const ir: CountryModule = {
       nationalCode = body + solveCheckDigit((d) => iranNationalCodeValid(body + d));
     } while (nationalCode.length !== 10);
 
-    const bank = rng.pick(IR_BANKS);
+    const bank = pickBank(rng, IR_BANKS, options);
     const account = rng.digits(rng.int(10, 13), true);
     const iban = makeIban('IR', bank.code + account.padStart(19, '0'));
     const cardBody = bank.bin + rng.digits(9);

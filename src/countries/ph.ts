@@ -1,5 +1,5 @@
 import type { CountryModule } from '../core/types';
-import { birthDate, email, pickGender } from '../core/person';
+import { birthDate, email, pickGender, pickBank, bankName } from '../core/person';
 import { postalAddress } from '../core/iso20022';
 import { NAMES } from './names';
 
@@ -27,6 +27,7 @@ export const ph: CountryModule = {
   flag: '🇵🇭',
   currency: 'PHP',
   group: 'Asia-Pacific',
+  banks: BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const given = rng.pick(NAMES.PH[gender]);
@@ -41,7 +42,7 @@ export const ph: CountryModule = {
     const unit = rng.bool(0.4) ? `Unit ${rng.int(1, 30)}${rng.pick(['A', 'B', 'C'])}` : undefined;
     const zip = String(rng.int(place.zip[0], place.zip[1]));
 
-    const bank = rng.pick(BANKS);
+    const bank = pickBank(rng, BANKS, options);
     const account = rng.digits(bank.length, true);
     const mobile = `+63 9${rng.digits(2)} ${rng.digits(3)} ${rng.digits(4)}`;
     const tin = `${rng.digits(3, true)}-${rng.digits(3)}-${rng.digits(3)}-000`;

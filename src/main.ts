@@ -3,7 +3,7 @@ import '@fontsource/atkinson-hyperlegible-next/600.css';
 import '@fontsource/atkinson-hyperlegible-next/700.css';
 import '@fontsource/atkinson-hyperlegible-mono/400.css';
 import '@fontsource/atkinson-hyperlegible-mono/500.css';
-import { COUNTRIES, generatePersona } from './countries';
+import { COUNTRIES, generatePersona, getCountry } from './countries';
 import type { Field, GenerateOptions, Persona } from './core/types';
 import { randomSeed } from './core/rng';
 import { download, toCsv } from './export';
@@ -14,6 +14,7 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const form = $<HTMLFormElement>('controls');
 const countrySelect = $<HTMLSelectElement>('country');
 const genderSelect = $<HTMLSelectElement>('gender');
+const bankSelect = $<HTMLSelectElement>('bank');
 const minAgeInput = $<HTMLInputElement>('minAge');
 const maxAgeInput = $<HTMLInputElement>('maxAge');
 const seedInput = $<HTMLInputElement>('seed');
@@ -32,7 +33,7 @@ let current: Persona | undefined;
 
 /** The persona as it should be shown and exported, honouring the Latin-only toggle. */
 const view = (p: Persona) => (latinOnlyInput.checked ? latinise(p) : p);
-let history: { code: string; seed: number; name: string; flag: string }[] = JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]');
+let history: { code: string; seed: number; bank?: string; name: string; flag: string }[] = JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]');
 
 // ---------------------------------------------------------------- country picker
 
@@ -45,9 +46,16 @@ for (const group of [...new Set(COUNTRIES.map((c) => c.group))]) {
   countrySelect.append(optgroup);
 }
 
+/** Lists the selected country's banks, keeping `selected` if that country offers it. */
+function fillBanks(code: string, selected = 'any'): void {
+  bankSelect.replaceChildren(new Option('Any', 'any'), ...getCountry(code).banks.map((name) => new Option(name, name)));
+  bankSelect.value = getCountry(code).banks.includes(selected) ? selected : 'any';
+}
+
 function options(): GenerateOptions {
   return {
     gender: genderSelect.value as GenerateOptions['gender'],
+    bank: bankSelect.value,
     minAge: Number(minAgeInput.value) || 18,
     maxAge: Number(maxAgeInput.value) || 80,
   };
@@ -181,10 +189,11 @@ function generate(code: string, seed: number): void {
   const persona = generatePersona(code, options(), seed);
   current = persona;
   render(view(persona));
-  history = [{ code, seed, name: persona.name.full, flag: persona.country.flag }, ...history.filter((h) => !(h.code === code && h.seed === seed))].slice(0, 25);
+  const bank = bankSelect.value === 'any' ? undefined : bankSelect.value;
+  history = [{ code, seed, bank, name: persona.name.full, flag: persona.country.flag }, ...history.filter((h) => !(h.code === code && h.seed === seed && h.bank === bank))].slice(0, 25);
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
   renderHistory();
-  window.history.replaceState(null, '', `#${code}-${seed}`);
+  window.history.replaceState(null, '', `#${code}-${seed}${bank ? `-${encodeURIComponent(bank)}` : ''}`);
 }
 
 function toast(message: string): void {
@@ -200,7 +209,10 @@ form.addEventListener('submit', (e) => {
   generate(countrySelect.value, seed);
 });
 
-countrySelect.addEventListener('change', () => form.requestSubmit());
+countrySelect.addEventListener('change', () => {
+  fillBanks(countrySelect.value);
+  form.requestSubmit();
+});
 
 async function copy(el: HTMLElement): Promise<void> {
   await navigator.clipboard.writeText(el.dataset.copy!);
@@ -231,6 +243,7 @@ document.addEventListener('click', async (e) => {
   if (historyBtn) {
     const h = history[Number(historyBtn.dataset.history)];
     countrySelect.value = h.code;
+    fillBanks(h.code, h.bank);
     generate(h.code, h.seed);
   }
 });
@@ -248,7 +261,8 @@ function batch(): Persona[] {
   const all = $<HTMLSelectElement>('batchScope').value === 'all';
   return Array.from({ length: count }, (_, i) => {
     const code = all ? COUNTRIES[i % COUNTRIES.length].code : countrySelect.value;
-    return view(generatePersona(code, options(), randomSeed()));
+    // A bank only means something within one country, so an all-country batch picks banks at random.
+    return view(generatePersona(code, { ...options(), ...(all && { bank: 'any' }) }, randomSeed()));
   });
 }
 
@@ -262,11 +276,14 @@ $('exportJson').addEventListener('click', () => download(`personas-${Date.now()}
 
 // ---------------------------------------------------------------- start-up
 
-const [hashCode, hashSeed] = location.hash.slice(1).split('-');
+// Bank names may contain hyphens, so everything after the seed is the bank.
+const [hashCode, hashSeed, ...hashBank] = location.hash.slice(1).split('-');
 if (hashCode && COUNTRIES.some((c) => c.code === hashCode) && hashSeed) {
   countrySelect.value = hashCode;
+  fillBanks(hashCode, decodeURIComponent(hashBank.join('-')));
   generate(hashCode, Number(hashSeed) >>> 0);
 } else {
   countrySelect.value = 'GB';
+  fillBanks('GB');
   generate('GB', randomSeed());
 }

@@ -1,5 +1,5 @@
 import type { CountryModule } from '../core/types';
-import { birthDate, email, pickGender } from '../core/person';
+import { birthDate, email, pickGender, pickBank, bankName } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { luhnCheckDigit } from '../core/checks';
 import { postalAddress } from '../core/iso20022';
@@ -26,6 +26,7 @@ export const il: CountryModule = {
   flag: '🇮🇱',
   currency: 'ILS',
   group: 'Middle East & Africa',
+  banks: BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const [givenHe, given] = rng.pick(IL_GIVEN[gender]);
@@ -40,7 +41,7 @@ export const il: CountryModule = {
     const idBody = rng.digits(8);
     const teudatZehut = idBody + luhnCheckDigit(idBody);
 
-    const bank = rng.pick(BANKS);
+    const bank = pickBank(rng, BANKS, options);
     const branch = rng.digits(3);
     const account = rng.digits(rng.int(6, 9), true);
     const iban = makeIban('IL', bank.code + branch + account.padStart(13, '0'));

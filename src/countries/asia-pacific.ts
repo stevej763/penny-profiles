@@ -1,6 +1,6 @@
 import type { CountryModule } from '../core/types';
 import type { Rng } from '../core/rng';
-import { birthDate, email, pickGender, type BirthDate } from '../core/person';
+import { birthDate, email, pickGender, type BirthDate, pickBank, bankName } from '../core/person';
 import { postalAddress } from '../core/iso20022';
 import { CN_GIVEN, CN_SURNAMES, JP_FAMILY, JP_GIVEN, NAMES } from './names';
 import { luhnCheckDigit, pad, solveCheckDigit, verhoeffValid, weightedSum } from '../core/checks';
@@ -36,6 +36,7 @@ export const au: CountryModule = {
   flag: '🇦🇺',
   currency: 'AUD',
   group: 'Asia-Pacific',
+  banks: AU_BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const given = rng.pick(NAMES.AU[gender]);
@@ -51,7 +52,7 @@ export const au: CountryModule = {
     do tfn = rng.digits(8, true) + rng.digits(1);
     while (!tfnValid(tfn));
 
-    const bank = rng.pick(AU_BANKS);
+    const bank = pickBank(rng, AU_BANKS, options);
     const bsb = bank.bsbPrefix + place.bsbState + rng.digits(3);
     const account = rng.digits(bank.accountLength, true);
     const mail = email(rng, given, family);
@@ -144,6 +145,7 @@ export const nz: CountryModule = {
   flag: '🇳🇿',
   currency: 'NZD',
   group: 'Asia-Pacific',
+  banks: NZ_BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const given = rng.pick(NAMES.NZ[gender]);
@@ -160,7 +162,7 @@ export const nz: CountryModule = {
     while (!irdValid(ird));
     const ird9 = pad(ird, 9);
 
-    const bank = rng.pick(NZ_BANKS);
+    const bank = pickBank(rng, NZ_BANKS, options);
     const branch = pad(rng.int(bank.branches[0], bank.branches[1]), 4);
     const suffix = pad(rng.pick([0, 0, 0, 1, 2, 25]), 2);
     let base: string;
@@ -230,6 +232,7 @@ export const cn: CountryModule = {
   flag: '🇨🇳',
   currency: 'CNY',
   group: 'Asia-Pacific',
+  banks: CN_BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const [familyZh, family] = rng.pick(CN_SURNAMES);
@@ -246,7 +249,7 @@ export const cn: CountryModule = {
     while ((Number(seq[2]) % 2 === 1) !== (gender === 'male'));
     const idBody = place.idPrefix + yyyymmdd(dob) + seq;
 
-    const bank = rng.pick(CN_BANKS);
+    const bank = pickBank(rng, CN_BANKS, options);
     const cardBody = bank.bin + rng.digits(12);
     const card = cardBody + luhnCheckDigit(cardBody);
     const cnaps = bank.cnaps + place.cnaps + rng.digits(5);
@@ -340,6 +343,7 @@ export const jp: CountryModule = {
   flag: '🇯🇵',
   currency: 'JPY',
   group: 'Asia-Pacific',
+  banks: JP_BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const [familyJa, family, familyKana] = rng.pick(JP_FAMILY);
@@ -352,7 +356,7 @@ export const jp: CountryModule = {
     const myNumberBody = rng.digits(11, true);
     const myNumber = myNumberBody + myNumberCheck(myNumberBody);
 
-    const bank = rng.pick(JP_BANKS);
+    const bank = pickBank(rng, JP_BANKS, options);
     const [branchJa, branchEn] = rng.pick(JP_BRANCHES);
     const branchCode = pad(rng.int(100, 899), 3);
     const account = rng.digits(7);
@@ -447,6 +451,7 @@ export const india: CountryModule = {
   flag: '🇮🇳',
   currency: 'INR',
   group: 'Asia-Pacific',
+  banks: IN_BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const given = rng.pick(NAMES.IN[gender]);
@@ -460,7 +465,7 @@ export const india: CountryModule = {
     const locality = rng.pick(place.areas);
 
     const pan = `${rng.letters(3)}P${family[0]}${rng.digits(4)}${rng.letters(1)}`;
-    const bank = rng.pick(IN_BANKS);
+    const bank = pickBank(rng, IN_BANKS, options);
     const ifsc = `${bank.ifsc}0${rng.digits(6)}`;
     const account = rng.digits(bank.length, true);
     const micr = place.micr + bank.micr + rng.digits(3);

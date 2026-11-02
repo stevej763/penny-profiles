@@ -1,5 +1,5 @@
 import type { CountryModule } from '../core/types';
-import { birthDate, email, pickGender } from '../core/person';
+import { birthDate, email, pickGender, pickBank, bankName } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { pad } from '../core/checks';
 import { postalAddress } from '../core/iso20022';
@@ -30,6 +30,7 @@ export const by: CountryModule = {
   flag: '🇧🇾',
   currency: 'BYN',
   group: 'Europe (non-euro)',
+  banks: BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const g = gender === 'male' ? 0 : 1;
@@ -51,7 +52,7 @@ export const by: CountryModule = {
     const sexCentury = (dob.year >= 2000 ? 5 : 3) + g;
     const personal = `${sexCentury}${pad(dob.day, 2)}${pad(dob.month, 2)}${pad(dob.year % 100, 2)}${city.region}${rng.digits(3)}PB${rng.digits(1)}`;
 
-    const bank = rng.pick(BANKS);
+    const bank = pickBank(rng, BANKS, options);
     // BBAN: bank code (4 letters) + balance account 3014 (individuals' current accounts) + 16-digit account.
     const account = rng.digits(16);
     const iban = makeIban('BY', bank.code + '3014' + account);

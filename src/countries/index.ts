@@ -49,6 +49,7 @@ export function generatePersona(code: string, options: GenerateOptions = {}, see
     gender: options.gender ?? 'any',
     minAge,
     maxAge: Math.max(minAge, options.maxAge ?? 80),
+    bank: options.bank ?? 'any',
   });
   return {
     seed,

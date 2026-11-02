@@ -1,5 +1,5 @@
 import type { CountryModule } from '../core/types';
-import { birthDate, email, pickGender } from '../core/person';
+import { birthDate, email, pickGender, pickBank, bankName } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { postalAddress } from '../core/iso20022';
 import { NAMES } from './names';
@@ -27,6 +27,7 @@ export const pk: CountryModule = {
   flag: '🇵🇰',
   currency: 'PKR',
   group: 'Asia-Pacific',
+  banks: BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const given = rng.pick(NAMES.PK[gender]);
@@ -42,7 +43,7 @@ export const pk: CountryModule = {
     const sexDigit = gender === 'male' ? rng.pick([1, 3, 5, 7, 9]) : rng.pick([2, 4, 6, 8]);
     const cnic = `${place.cnic}${rng.digits(4)}-${rng.digits(7)}-${sexDigit}`;
 
-    const bank = rng.pick(BANKS);
+    const bank = pickBank(rng, BANKS, options);
     const account = rng.digits(16);
     const iban = makeIban('PK', bank.code + account);
     const mobile = `+92 3${rng.digits(2)} ${rng.digits(7)}`;

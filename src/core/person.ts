@@ -16,6 +16,19 @@ export function pickGender(rng: Rng, options: Required<GenerateOptions>): Gender
   return rng.bool() ? 'male' : 'female';
 }
 
+/**
+ * Picks a bank, honouring `options.bank`. The random draw is always made so that choosing a
+ * bank leaves the rest of the persona generated from a seed unchanged.
+ */
+export function pickBank<T extends NamedBank>(rng: Rng, banks: readonly T[], options: Required<GenerateOptions>): T {
+  const random = rng.pick(banks);
+  return banks.find((b) => bankName(b) === options.bank) ?? random;
+}
+
+/** Bank tables key their Latin-script name as `name`, or `en` where there is also a native name. */
+type NamedBank = { name: string } | { en: string };
+export const bankName = (bank: NamedBank) => ('name' in bank ? bank.name : bank.en);
+
 export function birthDate(rng: Rng, options: Required<GenerateOptions>, today = new Date()): BirthDate {
   const age = rng.int(options.minAge, options.maxAge);
   // Pick a random day within the year that yields exactly `age` today.

@@ -68,6 +68,8 @@ export interface GenerateOptions {
   gender?: Gender | 'any';
   minAge?: number;
   maxAge?: number;
+  /** Bank name from the country's `banks` list; 'any' picks one at random. */
+  bank?: string;
 }
 
 /** What a country module produces; seed, timestamp and country metadata are added by the registry. */
@@ -79,5 +81,7 @@ export interface CountryModule {
   flag: string;
   currency: string;
   group: string;
+  /** Names of the banks this country can generate accounts for, in pick order. */
+  banks: readonly string[];
   generate(rng: Rng, options: Required<GenerateOptions>): PersonaBody;
 }

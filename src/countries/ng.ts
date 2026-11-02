@@ -1,5 +1,5 @@
 import type { CountryModule } from '../core/types';
-import { birthDate, email, pickGender } from '../core/person';
+import { birthDate, email, pickGender, pickBank, bankName } from '../core/person';
 import { weightedSum } from '../core/checks';
 import { postalAddress } from '../core/iso20022';
 import { NAMES } from './names';
@@ -31,6 +31,7 @@ export const ng: CountryModule = {
   flag: '🇳🇬',
   currency: 'NGN',
   group: 'Middle East & Africa',
+  banks: BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const given = rng.pick(NAMES.NG[gender]);
@@ -42,7 +43,7 @@ export const ng: CountryModule = {
     const number = rng.int(1, 250);
     const postcode = String(rng.int(place.pc[0], place.pc[1]));
 
-    const bank = rng.pick(BANKS);
+    const bank = pickBank(rng, BANKS, options);
     const serial = rng.digits(9);
     const nuban = serial + nubanCheck(bank.code, serial);
 

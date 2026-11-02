@@ -1,6 +1,6 @@
 import type { CountryModule } from '../core/types';
 import type { Rng } from '../core/rng';
-import { birthDate, email, pickGender } from '../core/person';
+import { birthDate, email, pickGender, pickBank, bankName } from '../core/person';
 import { luhnCheckDigit, pad } from '../core/checks';
 import { postalAddress } from '../core/iso20022';
 import { NAMES } from './names';
@@ -44,6 +44,7 @@ export const ca: CountryModule = {
   flag: '🇨🇦',
   currency: 'CAD',
   group: 'Americas',
+  banks: [...BANKS, DESJARDINS].map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const given = rng.pick(NAMES.CA[gender]);
@@ -58,7 +59,9 @@ export const ca: CountryModule = {
       ? `${number}, ${street}${unit ? `, app. ${unit}` : ''}`
       : `${unit ? `Unit ${unit}, ` : ''}${number} ${street}`;
 
-    const bank = place.prov === 'QC' && rng.bool(0.4) ? DESJARDINS : rng.pick(BANKS);
+    const quebecCoop = place.prov === 'QC' && rng.bool(0.4);
+    const bank =
+      options.bank === DESJARDINS.name ? DESJARDINS : quebecCoop && options.bank === 'any' ? DESJARDINS : pickBank(rng, BANKS, options);
     const transit = rng.digits(5);
     const account = rng.digits(7);
     const mail = email(rng, given, family);

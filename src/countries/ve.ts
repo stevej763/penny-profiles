@@ -1,5 +1,5 @@
 import type { CountryModule } from '../core/types';
-import { birthDate, email, pickGender } from '../core/person';
+import { birthDate, email, pickGender, pickBank, bankName } from '../core/person';
 import { pad, weightedSum } from '../core/checks';
 import { postalAddress } from '../core/iso20022';
 import { NAMES } from './names';
@@ -31,6 +31,7 @@ export const ve: CountryModule = {
   flag: '🇻🇪',
   currency: 'VES',
   group: 'Americas',
+  banks: BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const given = rng.pick(NAMES.VE[gender]);
@@ -51,7 +52,7 @@ export const ve: CountryModule = {
 
     // 20 digits: bank (4) + branch (4) + control (2) + account (10). The control-digit algorithm
     // isn't published, so those two digits are random and the account isn't marked as checked.
-    const bank = rng.pick(BANKS);
+    const bank = pickBank(rng, BANKS, options);
     const account = bank.code + rng.digits(4) + rng.digits(2) + rng.digits(10);
     const mobile = `0${rng.pick(['412', '414', '416', '424', '426'])}-${rng.digits(7)}`;
 

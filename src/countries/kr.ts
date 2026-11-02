@@ -1,5 +1,5 @@
 import type { CountryModule } from '../core/types';
-import { birthDate, email, pickGender } from '../core/person';
+import { birthDate, email, pickGender, pickBank, bankName } from '../core/person';
 import { pad, weightedSum } from '../core/checks';
 import { postalAddress } from '../core/iso20022';
 import { KR_FAMILY, KR_GIVEN } from './names';
@@ -32,6 +32,7 @@ export const kr: CountryModule = {
   flag: '🇰🇷',
   currency: 'KRW',
   group: 'Asia-Pacific',
+  banks: BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const [familyKo, family] = rng.pick(KR_FAMILY);
@@ -50,7 +51,7 @@ export const kr: CountryModule = {
     const rrnBody = `${pad(dob.year % 100, 2)}${pad(dob.month, 2)}${pad(dob.day, 2)}${sexDigit}${pad(rng.int(0, 96), 2)}${rng.digits(3)}`;
     const rrn = rrnBody + rrnCheck(rrnBody);
 
-    const bank = rng.pick(BANKS);
+    const bank = pickBank(rng, BANKS, options);
     const account = bank.groups.map((n) => rng.digits(n)).join('-');
 
     return {

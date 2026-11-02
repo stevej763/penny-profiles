@@ -1,6 +1,6 @@
 import type { CountryModule } from '../core/types';
 import type { Rng } from '../core/rng';
-import { birthDate, email, pickGender } from '../core/person';
+import { birthDate, email, pickGender, pickBank, bankName } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { pad } from '../core/checks';
 import { postalAddress } from '../core/iso20022';
@@ -44,6 +44,7 @@ export const gb: CountryModule = {
   flag: '🇬🇧',
   currency: 'GBP',
   group: 'United Kingdom',
+  banks: UK_BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const given = rng.pick(GIVEN[gender]);
@@ -59,7 +60,7 @@ export const gb: CountryModule = {
     const street = `${buildingNumber} ${streetName}`;
     const lines = [flat ? `${flat}, ${street}` : street, place.city, postcode];
 
-    const bank = rng.pick(UK_BANKS);
+    const bank = pickBank(rng, UK_BANKS, options);
     const range = rng.pick(bank.ranges);
     const sortCode = pad(rng.int(Number(range.from), Number(range.to)), 6);
     let account: string;

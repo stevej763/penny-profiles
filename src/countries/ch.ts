@@ -1,5 +1,5 @@
 import type { CountryModule } from '../core/types';
-import { birthDate, email, pickGender } from '../core/person';
+import { birthDate, email, pickGender, pickBank, bankName } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { postalAddress } from '../core/iso20022';
 import { NAMES } from './names';
@@ -39,6 +39,7 @@ export const ch: CountryModule = {
   flag: '🇨🇭',
   currency: 'CHF',
   group: 'Europe (non-euro)',
+  banks: BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const given = rng.pick(NAMES.CH[gender]);
@@ -52,7 +53,7 @@ export const ch: CountryModule = {
     const ahvBody = '756' + rng.digits(9);
     const ahv = ahvBody + ean13Check(ahvBody);
 
-    const bank = rng.pick(BANKS);
+    const bank = pickBank(rng, BANKS, options);
     const account = rng.digits(12);
     const iban = makeIban('CH', bank.iid + account);
 

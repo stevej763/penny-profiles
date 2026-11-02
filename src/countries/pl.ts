@@ -1,6 +1,6 @@
 import type { CountryModule } from '../core/types';
 import type { Rng } from '../core/rng';
-import { birthDate, email, pickGender, type BirthDate } from '../core/person';
+import { birthDate, email, pickGender, type BirthDate, pickBank, bankName } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { pad, weightedSum } from '../core/checks';
 import { postalAddress } from '../core/iso20022';
@@ -49,6 +49,7 @@ export const pl: CountryModule = {
   flag: '🇵🇱',
   currency: 'PLN',
   group: 'Europe (non-euro)',
+  banks: BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const given = rng.pick(NAMES.PL[gender]);
@@ -61,7 +62,7 @@ export const pl: CountryModule = {
     const number = rng.int(1, 150);
     const flat = rng.bool(0.6) ? rng.int(1, 120) : undefined;
 
-    const bank = rng.pick(BANKS);
+    const bank = pickBank(rng, BANKS, options);
     const sort7 = bank.code + rng.digits(4);
     const sortCode = sort7 + plSortCodeCheck(sort7);
     const account = rng.digits(16);

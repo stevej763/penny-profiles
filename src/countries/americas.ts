@@ -1,5 +1,5 @@
 import type { CountryModule } from '../core/types';
-import { ascii, birthDate, email, pickGender, type BirthDate } from '../core/person';
+import { ascii, birthDate, email, pickGender, type BirthDate, pickBank, bankName } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { postalAddress } from '../core/iso20022';
 import { NAMES } from './names';
@@ -36,6 +36,7 @@ export const us: CountryModule = {
   flag: '🇺🇸',
   currency: 'USD',
   group: 'Americas',
+  banks: US_BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const names = NAMES.US[gender];
@@ -54,7 +55,7 @@ export const us: CountryModule = {
     while (area === 666);
     const ssn = `${pad(area, 3)}-${pad(rng.int(1, 99), 2)}-${pad(rng.int(1, 9999), 4)}`;
 
-    const bank = rng.pick(US_BANKS);
+    const bank = pickBank(rng, US_BANKS, options);
     const account = rng.digits(rng.int(10, 12), true);
     const accountType = rng.pick(['Checking', 'Checking', 'Savings']);
 
@@ -157,6 +158,7 @@ export const mx: CountryModule = {
   flag: '🇲🇽',
   currency: 'MXN',
   group: 'Americas',
+  banks: MX_BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const given = rng.pick(NAMES.MX[gender]);
@@ -175,7 +177,7 @@ export const mx: CountryModule = {
     const curp17 = stem + (gender === 'male' ? 'H' : 'M') + place.curp + consonants + (dob.year < 2000 ? rng.digits(1) : rng.letters(1));
     const rfc12 = stem + rng.chars(2, '123456789ABCDEFGHIJKLMNPQRSTUVWXYZ');
 
-    const bank = rng.pick(MX_BANKS);
+    const bank = pickBank(rng, MX_BANKS, options);
     const account = rng.digits(11);
     const clabe17 = bank.code + place.plaza + account;
     const clabe = clabe17 + clabeCheck(clabe17);
@@ -308,6 +310,7 @@ export const br: CountryModule = {
   flag: '🇧🇷',
   currency: 'BRL',
   group: 'Americas',
+  banks: BR_BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const given = rng.pick(NAMES.BR[gender]);
@@ -328,7 +331,7 @@ export const br: CountryModule = {
     while (!cpfValid(cpf));
     const cpfFormatted = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 
-    const bank = rng.pick(BR_BANKS);
+    const bank = pickBank(rng, BR_BANKS, options);
     let agencia: string;
     let acct: NonNullable<ReturnType<(typeof BR_BANKS)[number]['make']>>;
     for (;;) {

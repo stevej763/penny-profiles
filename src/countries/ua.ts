@@ -1,5 +1,5 @@
 import type { CountryModule } from '../core/types';
-import { birthDate, email, pickGender, type BirthDate } from '../core/person';
+import { birthDate, email, pickGender, type BirthDate, pickBank, bankName } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { pad, weightedSum } from '../core/checks';
 import { postalAddress } from '../core/iso20022';
@@ -38,6 +38,7 @@ export const ua: CountryModule = {
   flag: '🇺🇦',
   currency: 'UAH',
   group: 'Europe (non-euro)',
+  banks: BANKS.map(bankName),
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const g = gender === 'male' ? 0 : 1;
@@ -62,7 +63,7 @@ export const ua: CountryModule = {
     const taxBody = pad(daysSince1899(dob), 5) + rng.digits(3) + sexDigit;
     const taxId = taxBody + rnokppCheck(taxBody);
 
-    const bank = rng.pick(BANKS);
+    const bank = pickBank(rng, BANKS, options);
     const account = rng.digits(14, true);
     const iban = makeIban('UA', bank.mfo + account.padStart(19, '0'));
 
