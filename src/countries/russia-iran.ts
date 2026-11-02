@@ -107,7 +107,8 @@ export const ru: CountryModule = {
         family,
         native: `${familyRu} ${givenRu} ${patronymicRu}`,
         accountHolder: `${familyRu} ${givenRu} ${patronymicRu}`,
-        parts: [{ label: 'Patronymic (отчество)', value: `${patronymicRu} / ${patronymic}` }],
+        accountHolderLatin: `${family} ${given} ${patronymic}`.toUpperCase(),
+        parts: [{ label: 'Patronymic (отчество)', value: `${patronymicRu} / ${patronymic}`, latin: patronymic }],
       },
       dateOfBirth: dob.iso,
       age: dob.age,
@@ -213,7 +214,10 @@ export const ir: CountryModule = {
 
     return {
       gender,
-      name: { full: `${given} ${family}`, given, family, native: `${givenFa} ${familyFa}`, accountHolder: `${givenFa} ${familyFa}` },
+      name: { full: `${given} ${family}`, given, family, native: `${givenFa} ${familyFa}`,
+        accountHolder: `${givenFa} ${familyFa}`,
+        accountHolderLatin: `${given} ${family}`.toUpperCase(),
+      },
       dateOfBirth: dob.iso,
       age: dob.age,
       nationality: 'Iranian',

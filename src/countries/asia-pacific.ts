@@ -275,6 +275,7 @@ export const cn: CountryModule = {
         family,
         native: familyZh + givenZh,
         accountHolder: familyZh + givenZh,
+        accountHolderLatin: pinyinName,
         parts: [{ label: 'Name order', value: 'Family name first' }],
       },
       dateOfBirth: dob.iso,
@@ -304,7 +305,7 @@ export const cn: CountryModule = {
         currency: 'CNY',
         domestic: [
           { label: 'Account / card number (账号)', value: card.replace(/(\d{4})(?=\d)/g, '$1 '), check: 'UnionPay BIN + Luhn' },
-          { label: 'Branch (开户行)', value: branchZh },
+          { label: 'Branch (开户行)', value: branchZh, latin: `${bank.en}, ${place.en} ${place.districtEn.replace(' District', '')} Sub-branch` },
           { label: 'CNAPS code (联行号)', value: cnaps },
         ],
         international: [
@@ -386,9 +387,10 @@ export const jp: CountryModule = {
         family,
         native: `${familyJa} ${givenJa}`,
         accountHolder: `${familyKana} ${givenKana}`,
+        accountHolderLatin: `${family} ${given}`.toUpperCase(),
         parts: [
           { label: 'Name order', value: 'Family name first' },
-          { label: 'Katakana (フリガナ)', value: `${familyKana} ${givenKana}` },
+          { label: 'Katakana (フリガナ)', value: `${familyKana} ${givenKana}`, latin: null },
         ],
       },
       dateOfBirth: dob.iso,
@@ -422,10 +424,10 @@ export const jp: CountryModule = {
         currency: 'JPY',
         domestic: [
           { label: 'Bank code (金融機関コード)', value: bank.code },
-          { label: 'Branch (支店)', value: `${branchJa} (${branchCode})` },
-          { label: 'Account type (預金種目)', value: '普通 (Ordinary)' },
+          { label: 'Branch (支店)', value: `${branchJa} (${branchCode})`, latin: `${branchEn} Branch (${branchCode})` },
+          { label: 'Account type (預金種目)', value: '普通 (Ordinary)', latin: 'Futsu (Ordinary)' },
           { label: 'Account number (口座番号)', value: account },
-          { label: 'Account holder (口座名義)', value: `${familyKana} ${givenKana}` },
+          { label: 'Account holder (口座名義)', value: `${familyKana} ${givenKana}`, latin: `${family} ${given}`.toUpperCase() },
         ],
         international: [
           { label: 'SWIFT / BIC', value: bank.bic },

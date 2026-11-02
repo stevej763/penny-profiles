@@ -2,6 +2,7 @@ import { COUNTRIES, generatePersona } from './countries';
 import type { Field, GenerateOptions, Persona } from './core/types';
 import { randomSeed } from './core/rng';
 import { download, toCsv } from './export';
+import { latinise } from './core/latin';
 import { POSTAL_ADDRESS_FIELDS, postalAddressXml } from './core/iso20022';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -14,8 +15,18 @@ const seedInput = $<HTMLInputElement>('seed');
 const personaEl = $<HTMLElement>('persona');
 const historyEl = $<HTMLOListElement>('history');
 const toastEl = $<HTMLDivElement>('toast');
+const latinOnlyInput = $<HTMLInputElement>('latinOnly');
 
 const HISTORY_KEY = 'penny-profiles.history';
+const ADDRESS_VIEW_KEY = 'penny-profiles.addressView';
+type AddressView = 'formatted' | 'iso';
+let addressView: AddressView = localStorage.getItem(ADDRESS_VIEW_KEY) === 'iso' ? 'iso' : 'formatted';
+const LATIN_KEY = 'penny-profiles.latinOnly';
+latinOnlyInput.checked = localStorage.getItem(LATIN_KEY) === 'true';
+let current: Persona | undefined;
+
+/** The persona as it should be shown and exported, honouring the Latin-only toggle. */
+const view = (p: Persona) => (latinOnlyInput.checked ? latinise(p) : p);
 let history: { code: string; seed: number; name: string; flag: string }[] = JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]');
 
 // ---------------------------------------------------------------- country picker
@@ -71,15 +82,8 @@ function render(p: Persona): void {
     { label: 'Phone', value: p.phone },
     { label: 'Email', value: p.email },
   ];
-  const address: Field[] = [
-    { label: 'Address', value: [...p.address.lines, p.country.name].join('\n') },
-    ...(p.address.native ? [{ label: 'Native script', value: p.address.native.join('\n') }] : []),
-  ];
-
-  const iso: Field[] = POSTAL_ADDRESS_FIELDS.filter(({ tag }) => p.address.structured[tag]).map(({ tag, name }) => ({
-    label: `${name} <${tag}>`,
-    value: p.address.structured[tag]!,
-  }));
+  const formatted = [...p.address.lines, p.country.name].join('\n');
+  const iso = POSTAL_ADDRESS_FIELDS.filter(({ tag }) => p.address.structured[tag]);
 
   personaEl.innerHTML = `
     <div class="persona-head">
@@ -98,14 +102,23 @@ function render(p: Persona): void {
     <div class="grid">
       <div class="col">
         ${section('Personal', personal, false)}
-        ${section('Address', address, false)}
-        <section class="card">
+        <section class="card address" data-view="${addressView}">
           <div class="card-head">
-            <h3>ISO 20022 structured address</h3>
+            <h3>Address</h3>
+            <div class="toggle" role="group" aria-label="Address format">
+              <button data-address-view="formatted" aria-pressed="${addressView === 'formatted'}">Formatted</button>
+              <button data-address-view="iso" aria-pressed="${addressView === 'iso'}" title="ISO 20022 PostalAddress24, CBPR+ character set">ISO 20022</button>
+            </div>
+          </div>
+          <div class="view-formatted">
+            <p class="address-lines" dir="auto">${esc(formatted)}</p>
+            ${p.address.native ? `<p class="address-lines native-lines" dir="auto">${esc(p.address.native.join('\n'))}</p>` : ''}
+            <button class="copy" data-copy="${esc(formatted)}">Copy address</button>
+          </div>
+          <div class="view-iso">
+            <dl class="kv">${iso.map(({ tag, name }) => `<dt title="${name}">${tag}</dt><dd>${esc(p.address.structured[tag]!)}</dd>`).join('')}</dl>
             <button class="copy" data-copy-xml>Copy XML</button>
           </div>
-          <p class="card-note">PostalAddress24, fully structured, CBPR+ character set</p>
-          <dl>${iso.map((f) => fieldRow(f)).join('')}</dl>
         </section>
         ${section('Identity documents', p.identity)}
       </div>
@@ -134,7 +147,8 @@ function renderHistory(): void {
 
 function generate(code: string, seed: number): void {
   const persona = generatePersona(code, options(), seed);
-  render(persona);
+  current = persona;
+  render(view(persona));
   history = [{ code, seed, name: persona.name.full, flag: persona.country.flag }, ...history.filter((h) => !(h.code === code && h.seed === seed))].slice(0, 25);
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
   renderHistory();
@@ -164,6 +178,15 @@ document.addEventListener('click', async (e) => {
     toast('Copied');
     return;
   }
+  const viewBtn = target.closest<HTMLElement>('[data-address-view]');
+  if (viewBtn) {
+    addressView = viewBtn.dataset.addressView as AddressView;
+    localStorage.setItem(ADDRESS_VIEW_KEY, addressView);
+    const card = viewBtn.closest<HTMLElement>('.address')!;
+    card.dataset.view = addressView;
+    card.querySelectorAll<HTMLElement>('[data-address-view]').forEach((b) => b.setAttribute('aria-pressed', String(b === viewBtn)));
+    return;
+  }
   const historyBtn = target.closest<HTMLElement>('[data-history]');
   if (historyBtn) {
     const h = history[Number(historyBtn.dataset.history)];
@@ -177,9 +200,14 @@ function batch(): Persona[] {
   const all = $<HTMLSelectElement>('batchScope').value === 'all';
   return Array.from({ length: count }, (_, i) => {
     const code = all ? COUNTRIES[i % COUNTRIES.length].code : countrySelect.value;
-    return generatePersona(code, options(), randomSeed());
+    return view(generatePersona(code, options(), randomSeed()));
   });
 }
+
+latinOnlyInput.addEventListener('change', () => {
+  localStorage.setItem(LATIN_KEY, String(latinOnlyInput.checked));
+  if (current) render(view(current));
+});
 
 $('exportCsv').addEventListener('click', () => download(`personas-${Date.now()}.csv`, toCsv(batch()), 'text/csv'));
 $('exportJson').addEventListener('click', () => download(`personas-${Date.now()}.json`, JSON.stringify(batch(), null, 2), 'application/json'));

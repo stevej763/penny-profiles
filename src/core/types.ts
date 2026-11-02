@@ -8,6 +8,11 @@ export interface Field {
   label: string;
   value: string;
   check?: string;
+  /**
+   * Latin-script form of a value that uses another script, used by the Latin-only view.
+   * `null` means the field only makes sense in the native script and is dropped there.
+   */
+  latin?: string | null;
 }
 
 export interface Address {
@@ -44,6 +49,8 @@ export interface Persona {
     native?: string;
     /** Name as it would appear on the bank account, e.g. katakana in Japan. */
     accountHolder: string;
+    /** Latin-script account holder name, where `accountHolder` uses another script. */
+    accountHolderLatin?: string;
     parts?: Field[];
   };
   dateOfBirth: string;

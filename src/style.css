@@ -73,6 +73,9 @@ h1, h2, h3, p { margin: 0; }
 .controls h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
 label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); }
 .hint { font-weight: 400; color: var(--muted); }
+label.switch { flex-direction: row; align-items: flex-start; gap: 0.5rem; cursor: pointer; }
+label.switch input { margin: 0.15rem 0 0; accent-color: var(--accent); }
+label.switch .hint { display: block; font-size: 0.72rem; }
 .row { display: flex; gap: 0.6rem; }
 .row > * { flex: 1; }
 input, select {
@@ -152,10 +155,23 @@ button.primary:hover { filter: brightness(1.1); color: #fff; }
   padding: 1rem 1.1rem;
 }
 .card h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 0.5rem; }
-.card-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.6rem; }
 .card-head h3 { margin-bottom: 0; }
-.card-head .copy { font-size: 0.7rem; padding: 0.15rem 0.5rem; }
-.card-note { font-size: 0.72rem; color: var(--muted); margin: 0.2rem 0 0.4rem; }
+
+.toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.toggle button { border: none; border-radius: 0; font-size: 0.72rem; padding: 0.25rem 0.6rem; color: var(--ink-soft); }
+.toggle button + button { border-left: 1px solid var(--line); }
+.toggle button[aria-pressed='true'] { background: var(--accent); color: #fff; }
+
+.address .view-iso, .address[data-view='iso'] .view-formatted { display: none; }
+.address[data-view='iso'] .view-iso { display: block; }
+.address-lines { white-space: pre-line; font-size: 0.92rem; line-height: 1.5; }
+.native-lines { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--line); color: var(--ink-soft); }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; font-family: var(--mono); font-size: 0.85rem; }
+.kv dt { color: var(--muted); padding: 0; }
+.kv dd { display: block; overflow-wrap: anywhere; }
+.address .copy { margin-top: 0.75rem; font-size: 0.7rem; padding: 0.15rem 0.5rem; }
+
 .card.bank { border-left: 4px solid var(--accent); }
 .card.bank h3 { font-size: 1rem; text-transform: none; letter-spacing: 0; color: var(--ink); }
 .card.bank h3 .native { color: var(--ink-soft); font-weight: 500; margin-left: 0.35rem; }

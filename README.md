@@ -44,7 +44,7 @@ Every persona comes from a 32-bit seed. Enter the seed again, or open `#GB-12345
 | 🇲🇽 Mexico | CLABE with check digit | SWIFT + CLABE | CURP, RFC |
 | 🇧🇷 Brazil | Agência + conta with bank DV | IBAN, SWIFT, ISPB | CPF, Pix key |
 
-China, Japan, Russia and Iran also show names and addresses in the native script. Russian names include a patronymic, Spanish/Mexican/Portuguese/Brazilian names have two surnames, and CN/JP names are written family name first.
+China, Japan, Russia and Iran also show names and addresses in the native script. The **Latin script only** toggle replaces every non-Latin detail with its Latin form. Those forms come from the generators themselves (pinyin, Hepburn romaji, the Russian/Persian Latin names), not from generic transliteration, which would read Japanese kanji as Chinese. The toggle applies to the view, Copy JSON and batch exports (`latinise()` in `src/core/latin.ts`). Russian names include a patronymic, Spanish/Mexican/Portuguese/Brazilian names have two surnames, and CN/JP names are written family name first.
 
 ## ISO 20022 structured addresses
 
