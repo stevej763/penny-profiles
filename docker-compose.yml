@@ -1,0 +1,7 @@
+services:
+  app:
+    build: .
+    image: penny-profiles
+    ports:
+      - "${PORT:-8088}:80"
+    restart: unless-stopped

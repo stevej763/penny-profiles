@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Penny Profiles: banking test personas</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">£</span>
+        <div>
+          <h1>Penny Profiles</h1>
+          <p>Synthetic banking personas with checksum-valid account details</p>
+        </div>
+      </div>
+      <span class="warning">Test data only: fictional people, never use for real payments</span>
+    </header>
+
+    <main class="layout">
+      <aside class="controls">
+        <form id="controls">
+          <label>Country
+            <select id="country"></select>
+          </label>
+          <label>Gender
+            <select id="gender">
+              <option value="any">Any</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+            </select>
+          </label>
+          <div class="row">
+            <label>Min age <input id="minAge" type="number" min="16" max="100" value="18" /></label>
+            <label>Max age <input id="maxAge" type="number" min="16" max="100" value="80" /></label>
+          </div>
+          <label>Seed <span class="hint">(optional, reproduces a persona)</span>
+            <input id="seed" type="text" inputmode="numeric" placeholder="random" />
+          </label>
+          <button type="submit" class="primary">Generate persona</button>
+        </form>
+
+        <section class="batch">
+          <h2>Batch export</h2>
+          <div class="row">
+            <label>Count <input id="batchCount" type="number" min="1" max="5000" value="100" /></label>
+            <label>Scope
+              <select id="batchScope">
+                <option value="country">Selected country</option>
+                <option value="all">All countries</option>
+              </select>
+            </label>
+          </div>
+          <div class="row">
+            <button type="button" id="exportCsv">CSV</button>
+            <button type="button" id="exportJson">JSON</button>
+          </div>
+        </section>
+
+        <section class="history">
+          <h2>Recent</h2>
+          <ol id="history"></ol>
+        </section>
+      </aside>
+
+      <section id="persona" class="persona" aria-live="polite"></section>
+    </main>
+    <div id="toast" class="toast" role="status"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
