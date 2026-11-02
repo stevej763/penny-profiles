@@ -1,3 +1,8 @@
+import '@fontsource/atkinson-hyperlegible-next/400.css';
+import '@fontsource/atkinson-hyperlegible-next/600.css';
+import '@fontsource/atkinson-hyperlegible-next/700.css';
+import '@fontsource/atkinson-hyperlegible-mono/400.css';
+import '@fontsource/atkinson-hyperlegible-mono/500.css';
 import { COUNTRIES, generatePersona } from './countries';
 import type { Field, GenerateOptions, Persona } from './core/types';
 import { randomSeed } from './core/rng';
@@ -55,22 +60,38 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 /** Attributes that make an element copy `value` when clicked (or activated from the keyboard). */
 const copyAttrs = (value: string) => `data-copy="${esc(value)}" class="copyable" tabindex="0" role="button" title="Click to copy"`;
 
+/** Identifiers get the mono face; words like "Checking" or a pinyin name stay in the text face. */
+const looksLikeCode = (value: string) => /\d/.test(value) || /^[A-Z0-9]{6,}$/.test(value);
+
 function fieldRow(f: Field, mono = true): string {
-  const copyable = !f.value.startsWith('Not used');
+  const available = !f.value.startsWith('Not used');
+  const value = available ? `<span ${copyAttrs(f.value)}>${esc(f.value)}</span>` : esc(f.value);
   return `
-    <div class="field">
+    <div class="row-item">
       <dt>${esc(f.label)}</dt>
       <dd>
-        <span dir="auto" class="${mono && copyable ? 'mono' : 'muted'}"><span ${copyable ? copyAttrs(f.value) : ''}>${esc(f.value)}</span></span>
-        ${f.check ? `<span class="check" title="Passes: ${esc(f.check)}">✓ ${esc(f.check)}</span>` : ''}
+        <span dir="auto" class="value${mono && available && looksLikeCode(f.value) ? ' id' : ''}${available ? '' : ' unavailable'}">${value}</span>
+        ${f.check ? `<span class="verified" title="Passes this check">${esc(f.check)}</span>` : ''}
       </dd>
     </div>`;
 }
 
-function section(title: string, fields: Field[], mono = true): string {
+function ledger(title: string, fields: Field[], mono = true): string {
   if (!fields.length) return '';
-  return `<section class="card"><h3>${title}</h3><dl>${fields.map((f) => fieldRow(f, mono)).join('')}</dl></section>`;
+  return `<section class="ledger"><h3>${title}</h3><dl>${fields.map((f) => fieldRow(f, mono)).join('')}</dl></section>`;
 }
+
+/** E-13B "transit" symbol, the separator printed between routing and account numbers on cheques. */
+const TRANSIT = '<svg class="transit" viewBox="0 0 11 16" aria-hidden="true"><rect width="3" height="16"/><rect x="6" y="2" width="5" height="5"/><rect x="6" y="9" width="5" height="5"/></svg>';
+
+/** Domestic identifiers short and code-like enough to sit on a cheque's MICR line. */
+function micrLine(p: Persona): string {
+  const parts = p.bank.domestic.filter((f) => /^[0-9A-Z][0-9A-Z \-]{0,33}$/.test(f.value));
+  return parts.map((f) => `<span class="micr-part">${TRANSIT}<span ${copyAttrs(f.value)} title="${esc(f.label)}: click to copy">${esc(f.value)}</span></span>`).join('');
+}
+
+const longDate = (iso: string) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
 function render(p: Persona): void {
   const gender = p.gender === 'male' ? 'Male' : 'Female';
@@ -78,7 +99,7 @@ function render(p: Persona): void {
     { label: 'Full name', value: p.name.full },
     ...(p.name.native ? [{ label: 'Native script', value: p.name.native }] : []),
     ...(p.name.parts ?? []),
-    { label: 'Date of birth', value: `${p.dateOfBirth} (age ${p.age})` },
+    { label: 'Date of birth', value: p.dateOfBirth },
     { label: 'Gender', value: gender },
     { label: 'Nationality', value: p.nationality },
     { label: 'Phone', value: p.phone },
@@ -86,29 +107,38 @@ function render(p: Persona): void {
   ];
   const formatted = [...p.address.lines, p.country.name].join('\n');
   const iso = POSTAL_ADDRESS_FIELDS.filter(({ tag }) => p.address.structured[tag]);
+  const micr = micrLine(p);
 
   personaEl.innerHTML = `
-    <div class="persona-head">
-      <div class="flag">${p.country.flag}</div>
-      <div>
-        <h2>${esc(p.name.full)}</h2>
-        ${p.name.native ? `<p class="native">${esc(p.name.native)}</p>` : ''}
-        <p class="meta">${esc(p.country.name)} · ${p.age} · ${gender} · ${esc(p.bank.bankName)} (${p.bank.currency})</p>
+    <article class="slip">
+      <div class="slip-top">
+        <div>
+          <h2>${esc(p.name.full)}</h2>
+          ${p.name.native ? `<p class="slip-native" dir="auto">${esc(p.name.native)}</p>` : ''}
+        </div>
+        <div class="slip-actions">
+          <span class="seed" title="Enter this seed to regenerate the same persona">Seed <b>${p.seed}</b></span>
+          <button data-copy-json>Copy JSON</button>
+        </div>
       </div>
-      <div class="head-actions">
-        <span class="seed" title="Re-enter this seed to regenerate the same persona">seed ${p.seed}</span>
-        <button class="copy" data-copy-json>Copy JSON</button>
-      </div>
-    </div>
+      <dl class="slip-facts">
+        <div><dt>Country</dt><dd>${esc(p.country.name)}</dd></div>
+        <div><dt>Born</dt><dd>${longDate(p.dateOfBirth)}, age ${p.age}</dd></div>
+        <div><dt>Banks with</dt><dd>${esc(p.bank.bankName)}</dd></div>
+        <div><dt>Currency</dt><dd>${p.bank.currency}</dd></div>
+      </dl>
+      ${micr ? `<p class="micr" aria-label="Domestic account details">${micr}</p>` : ''}
+    </article>
     ${p.notes?.length ? `<div class="notes">${p.notes.map((n) => `<p>${esc(n)}</p>`).join('')}</div>` : ''}
-    <div class="grid">
-      <div class="col">
-        ${section('Personal', personal, false)}
-        <section class="card address" data-view="${addressView}">
-          <div class="card-head">
+    <div class="ledgers">
+      <div class="column">
+        <h2 class="column-title">Person</h2>
+        ${ledger('Personal details', personal, false)}
+        <section class="ledger address" data-view="${addressView}">
+          <div class="ledger-head">
             <h3>Address</h3>
             <div class="toggle" role="group" aria-label="Address format">
-              <button data-address-view="formatted" aria-pressed="${addressView === 'formatted'}">Formatted</button>
+              <button data-address-view="formatted" aria-pressed="${addressView === 'formatted'}">As written</button>
               <button data-address-view="iso" aria-pressed="${addressView === 'iso'}" title="ISO 20022 PostalAddress24, CBPR+ character set">ISO 20022</button>
             </div>
           </div>
@@ -118,19 +148,20 @@ function render(p: Persona): void {
           </div>
           <div class="view-iso">
             <dl class="kv">${iso.map(({ tag, name }) => `<dt title="${name}">${tag}</dt><dd><span ${copyAttrs(p.address.structured[tag]!)}>${esc(p.address.structured[tag]!)}</span></dd>`).join('')}</dl>
-            <button class="copy" data-copy-xml>Copy XML</button>
+            <button data-copy-xml>Copy XML</button>
           </div>
         </section>
-        ${section('Identity documents', p.identity)}
+        ${ledger('Identity documents', p.identity)}
       </div>
-      <div class="col">
-        <section class="card bank">
-          <h3>${esc(p.bank.bankName)}${p.bank.bankNameNative ? ` <span class="native">${esc(p.bank.bankNameNative)}</span>` : ''}</h3>
+      <div class="column">
+        <h2 class="column-title">Bank account</h2>
+        <section class="ledger">
+          <h3>${esc(p.bank.bankName)}${p.bank.bankNameNative ? ` <span class="native" dir="auto">${esc(p.bank.bankNameNative)}</span>` : ''}</h3>
           <dl>${fieldRow({ label: 'Account holder', value: p.name.accountHolder }, false)}</dl>
         </section>
-        ${section('Domestic payments', p.bank.domestic)}
-        ${section('International payments', p.bank.international)}
-        ${section('Cards & aliases', p.bank.extras ?? [])}
+        ${ledger('Domestic payments', p.bank.domestic)}
+        ${ledger('International payments', p.bank.international)}
+        ${ledger('Cards and aliases', p.bank.extras ?? [])}
       </div>
     </div>`;
 
@@ -140,7 +171,7 @@ function render(p: Persona): void {
 
 function renderHistory(): void {
   historyEl.innerHTML = history
-    .map((h, i) => `<li><button data-history="${i}">${h.flag} ${esc(h.name)}<small>${h.seed}</small></button></li>`)
+    .map((h, i) => `<li><button data-history="${i}"><span>${h.flag} ${esc(h.name)}</span><small>${h.seed}</small></button></li>`)
     .join('');
 }
 

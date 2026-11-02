@@ -1,227 +1,300 @@
+/*
+ * Penny Profiles. Borrowed from bank paperwork: cheque stock, intaglio ink, MICR lines and
+ * the violet of a rubber stamp. Violet is reserved for "verified" and "copied" marks.
+ */
 :root {
-  --ink: #14213d;
-  --ink-soft: #4a5672;
-  --muted: #8a93a8;
-  --line: #e3e7ef;
-  --bg: #f4f6fa;
-  --card: #ffffff;
-  --accent: #0f766e;
-  --accent-soft: #e6f4f2;
-  --warn: #9a3412;
-  --warn-soft: #fff4ea;
-  --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
-  font-family: Inter, -apple-system, 'Segoe UI', 'Noto Sans', 'Noto Sans CJK SC', 'Noto Sans Arabic', sans-serif;
+  --paper: #fafbf9;
+  --stock: #e4ece6;
+  --stock-line: #c7d6cc;
+  --ink: #17231f;
+  --ink-2: #4a5a54;
+  --ink-3: #7b8a84;
+  --rule: #cfd9d3;
+  --stamp: #5a3e9e;
+  --stamp-wash: #ece7f6;
+  --caution: #7a4310;
+  --caution-rule: #d9a46b;
+
+  --sans: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  --mono: 'Atkinson Hyperlegible Mono', ui-monospace, monospace;
+
+  /* Type scale, roughly a major third from a 15px base. */
+  --t-small: 0.8125rem;
+  --t-body: 0.9375rem;
+  --t-h3: 1.0625rem;
+  --t-h2: 1.375rem;
+  --t-name: 2.25rem;
+
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.45;
   color: var(--ink);
-  background: var(--bg);
+  background: var(--paper);
 }
 
 * { box-sizing: border-box; }
 body { margin: 0; }
-h1, h2, h3, p { margin: 0; }
+h1, h2, h3, p, dl, dd { margin: 0; }
+button, input, select { font: inherit; color: inherit; }
 
-.topbar {
+/* ---------------------------------------------------------------- masthead */
+
+.masthead {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.9rem 1.5rem;
-  background: var(--ink);
-  color: #fff;
+  gap: 1.5rem;
+  /* Full-bleed rule, content aligned with the 1360px layout below. */
+  padding: 1.25rem max(2rem, (100% - 1296px) / 2) 1rem;
+  border-bottom: 1px solid var(--rule);
 }
-.brand { display: flex; align-items: center; gap: 0.75rem; }
-.logo {
-  display: grid;
-  place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 50%;
-  background: #f4c95d;
-  color: var(--ink);
-  font-weight: 800;
-  font-size: 1.2rem;
-}
-.brand h1 { font-size: 1.1rem; letter-spacing: 0.01em; }
-.brand p { font-size: 0.8rem; color: #b9c2d8; }
-.warning {
-  font-size: 0.75rem;
-  padding: 0.3rem 0.65rem;
-  border: 1px solid #f4c95d;
-  border-radius: 999px;
-  color: #f4c95d;
-  white-space: nowrap;
-}
+.wordmark { font-size: 1.125rem; font-weight: 700; letter-spacing: -0.01em; }
+.wordmark span { font-weight: 400; color: var(--ink-2); margin-left: 0.5rem; }
+.disclaimer { font-size: var(--t-small); color: var(--ink-2); text-align: right; }
+
+/* ---------------------------------------------------------------- layout */
 
 .layout {
   display: grid;
-  grid-template-columns: 290px 1fr;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  max-width: 1400px;
+  grid-template-columns: 17rem minmax(0, 1fr);
+  gap: 3rem;
+  max-width: 1360px;
   margin: 0 auto;
+  padding: 2rem;
 }
 
-.controls { display: flex; flex-direction: column; gap: 1.25rem; }
-.controls form, .controls section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-}
-.controls h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
-label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); }
-.hint { font-weight: 400; color: var(--muted); }
-label.switch { flex-direction: row; align-items: flex-start; gap: 0.5rem; cursor: pointer; }
-label.switch input { margin: 0.15rem 0 0; accent-color: var(--accent); }
-label.switch .hint { display: block; font-size: 0.72rem; }
-.row { display: flex; gap: 0.6rem; }
-.row > * { flex: 1; }
+/* ---------------------------------------------------------------- controls */
+
+.controls { display: flex; flex-direction: column; gap: 2.25rem; }
+.controls form, .controls section { display: flex; flex-direction: column; gap: 0.9rem; }
+.controls h2 { font-size: var(--t-body); font-weight: 600; }
+.row { display: flex; gap: 0.75rem; }
+.row > * { flex: 1; min-width: 0; }
+
+label { display: flex; flex-direction: column; gap: 0.3rem; font-size: var(--t-small); font-weight: 600; color: var(--ink-2); }
+.hint { font-weight: 400; color: var(--ink-3); }
+
 input, select {
-  font: inherit;
-  font-size: 0.9rem;
+  font-size: var(--t-body);
   font-weight: 400;
-  padding: 0.5rem 0.6rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
   background: #fff;
   color: var(--ink);
 }
-input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+input::placeholder { color: var(--ink-3); }
+
+label.switch { flex-direction: row; align-items: flex-start; gap: 0.55rem; cursor: pointer; color: var(--ink); }
+label.switch input { margin: 0.2rem 0 0; accent-color: var(--ink); }
+label.switch .hint { display: block; margin-top: 0.1rem; }
+
 button {
-  font: inherit;
-  font-size: 0.85rem;
-  padding: 0.5rem 0.8rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  font-size: var(--t-small);
+  font-weight: 600;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
   background: #fff;
-  color: var(--ink);
   cursor: pointer;
 }
-button:hover { border-color: var(--accent); color: var(--accent); }
-button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; padding: 0.65rem; }
-button.primary:hover { filter: brightness(1.1); color: #fff; }
+button:hover { border-color: var(--ink-2); }
+button.primary {
+  font-size: var(--t-body);
+  padding: 0.65rem;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+button.primary:hover { background: #2a3a34; }
 
-.history ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; max-height: 320px; overflow: auto; }
+:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
+
+.history ol { list-style: none; margin: 0; padding: 0; max-height: 18rem; overflow: auto; }
 .history button {
   width: 100%;
   display: flex;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
   border: none;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  background: none;
+  font-weight: 400;
+  font-size: var(--t-body);
   text-align: left;
-  padding: 0.4rem 0.5rem;
 }
-.history button:hover { background: var(--accent-soft); }
-.history small { color: var(--muted); font-family: var(--mono); font-size: 0.7rem; }
+.history button:hover span { text-decoration: underline; text-underline-offset: 3px; }
+.history small { color: var(--ink-3); font-size: var(--t-small); font-variant-numeric: tabular-nums; }
 
-.persona-head {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  margin-bottom: 1rem;
+/* ---------------------------------------------------------------- the slip */
+
+.slip {
+  position: relative;
+  padding: 1.75rem 2rem 0;
+  border-radius: 10px;
+  background-color: var(--stock);
+  /* Guilloche: overlapping waves, as on cheque stock. Kept faint so text stays crisp. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='40' fill='none' stroke='%23c9d8ce' stroke-width='.7'%3E%3Cpath d='M0 20 Q20 2 40 20 T80 20 T120 20 T160 20'/%3E%3Cpath d='M0 20 Q20 38 40 20 T80 20 T120 20 T160 20'/%3E%3Cpath d='M0 10 Q20 28 40 10 T80 10 T120 10 T160 10'/%3E%3Cpath d='M0 30 Q20 12 40 30 T80 30 T120 30 T160 30'/%3E%3C/svg%3E");
+  background-size: 160px 40px;
 }
-.flag { font-size: 2.6rem; line-height: 1; }
-.persona-head h2 { font-size: 1.5rem; }
-.persona-head .native { font-size: 1.05rem; color: var(--ink-soft); }
-.meta { font-size: 0.85rem; color: var(--muted); margin-top: 0.15rem; }
-.head-actions { margin-left: auto; display: flex; align-items: center; gap: 0.6rem; }
-.seed { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
+.slip-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; }
+.slip h2 { font-size: var(--t-name); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+.slip-native { font-size: var(--t-h2); color: var(--ink-2); margin-top: 0.2rem; text-align: left; }
+.slip-actions { display: flex; align-items: center; gap: 0.9rem; flex-shrink: 0; }
+.seed { font-size: var(--t-small); color: var(--ink-2); }
+.seed b { font-weight: 600; color: var(--ink); }
+
+.slip-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 2.5rem;
+  margin-top: 1.25rem;
+}
+.slip-facts dt { font-size: var(--t-small); color: var(--ink-2); }
+.slip-facts dd { font-size: var(--t-body); font-weight: 600; }
+
+/* The MICR clear band along the bottom edge of a cheque. */
+.micr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.6rem;
+  margin: 1.5rem -2rem 0;
+  padding: 0.9rem 2rem 1rem;
+  border-top: 1px dashed var(--stock-line);
+  background: rgb(250 251 249 / 0.6);
+  border-radius: 0 0 10px 10px;
+  font-family: var(--mono);
+  font-size: 1.25rem;
+  letter-spacing: 0.06em;
+}
+.micr-part { display: inline-flex; align-items: center; gap: 0.6rem; white-space: nowrap; }
+.transit { width: 0.55em; height: 0.85em; fill: currentColor; flex-shrink: 0; }
 
 .notes {
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
-  border-radius: 10px;
-  background: var(--warn-soft);
-  border: 1px solid #fed7aa;
-  color: var(--warn);
-  font-size: 0.85rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  margin-top: 1rem;
+  padding: 0.1rem 0 0.1rem 0.9rem;
+  border-left: 3px solid var(--caution-rule);
+  color: var(--caution);
+  font-size: var(--t-small);
+}
+.notes p + p { margin-top: 0.25rem; }
+
+/* ---------------------------------------------------------------- ledgers */
+
+.ledgers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3rem;
+  margin-top: 2.25rem;
+}
+.column { display: flex; flex-direction: column; gap: 1.75rem; }
+.column-title {
+  font-size: var(--t-h2);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--ink);
 }
 
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
-.col { display: flex; flex-direction: column; gap: 1rem; }
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 1rem 1.1rem;
-}
-.card h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 0.5rem; }
-.card-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.6rem; }
-.card-head h3 { margin-bottom: 0; }
+.ledger h3 { font-size: var(--t-h3); font-weight: 600; margin-bottom: 0.35rem; }
+.ledger h3 .native { font-weight: 400; color: var(--ink-2); margin-left: 0.4rem; }
+.ledger-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.5rem; }
+.ledger-head h3 { margin-bottom: 0; }
 
-.toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-.toggle button { border: none; border-radius: 0; font-size: 0.72rem; padding: 0.25rem 0.6rem; color: var(--ink-soft); }
-.toggle button + button { border-left: 1px solid var(--line); }
-.toggle button[aria-pressed='true'] { background: var(--accent); color: #fff; }
+.row-item {
+  display: grid;
+  grid-template-columns: minmax(7rem, 38%) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.row-item dt { font-size: var(--t-small); color: var(--ink-2); padding-top: 0.15rem; }
+.row-item dd { min-width: 0; }
+.value { font-size: var(--t-body); white-space: pre-line; overflow-wrap: break-word; }
+.value.id { font-family: var(--mono); letter-spacing: 0.02em; }
+.value.unavailable { color: var(--ink-3); }
+
+/* A stamped tick: the rule this value passes. */
+.verified {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: var(--t-small);
+  color: var(--stamp);
+}
+.verified::before { content: '✓ '; font-weight: 700; }
+
+/* ---------------------------------------------------------------- address */
+
+.toggle { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.toggle button { border: none; border-radius: 0; padding: 0.25rem 0.65rem; font-weight: 400; color: var(--ink-2); background: #fff; }
+.toggle button + button { border-left: 1px solid var(--rule); }
+.toggle button[aria-pressed='true'] { background: var(--ink); color: var(--paper); font-weight: 600; }
 
 .address .view-iso, .address[data-view='iso'] .view-formatted { display: none; }
 .address[data-view='iso'] .view-iso { display: block; }
+.address-lines { white-space: pre-line; font-size: var(--t-body); line-height: 1.55; padding: 0.25rem 0 0.6rem; border-bottom: 1px solid var(--rule); }
 .address-lines .copyable { display: inline-block; }
-.address-lines { white-space: pre-line; font-size: 0.92rem; line-height: 1.5; }
-.native-lines { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--line); color: var(--ink-soft); }
-.kv { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; font-family: var(--mono); font-size: 0.85rem; }
-.kv dt { color: var(--muted); padding: 0; }
-.kv dd { display: block; overflow-wrap: break-word; min-width: 0; }
-.view-iso .copy { margin-top: 0.75rem; font-size: 0.7rem; padding: 0.15rem 0.5rem; }
-
-.card.bank { border-left: 4px solid var(--accent); }
-.card.bank h3 { font-size: 1rem; text-transform: none; letter-spacing: 0; color: var(--ink); }
-.card.bank h3 .native { color: var(--ink-soft); font-weight: 500; margin-left: 0.35rem; }
-
-dl { margin: 0; }
-.field { display: grid; grid-template-columns: 38% 1fr; gap: 0.75rem; padding: 0.5rem 0; border-top: 1px solid var(--line); }
-.field:first-child { border-top: none; }
-dt { font-size: 0.8rem; color: var(--ink-soft); padding-top: 0.15rem; }
-dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; min-width: 0; }
-/* break-word (not anywhere) so short values never split mid-word; long ones still wrap. */
-dd > span:first-child { white-space: pre-line; overflow-wrap: break-word; min-width: 0; }
-.mono { font-family: var(--mono); font-size: 0.9rem; letter-spacing: 0.02em; }
-.muted { font-size: 0.9rem; }
-dd > span.muted:first-child:only-child { color: var(--muted); }
-.check {
-  font-size: 0.68rem;
-  padding: 0.1rem 0.45rem;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  white-space: nowrap;
+.native-lines { padding-top: 0.6rem; color: var(--ink-2); text-align: left; }
+.kv {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.3rem 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--t-body);
 }
+.kv dt { font-family: var(--mono); font-size: var(--t-small); color: var(--ink-3); padding-top: 0.1rem; }
+.kv dd { overflow-wrap: break-word; min-width: 0; }
+.view-iso button { margin-top: 0.75rem; }
+
+/* ---------------------------------------------------------------- copy feedback */
+
 /* The highlight is a box-shadow so it takes no layout space and can't change how text wraps. */
-.copyable {
-  cursor: pointer;
-  border-radius: 3px;
-  transition: background 0.12s, box-shadow 0.12s;
-}
-.copyable:hover { background: var(--accent-soft); box-shadow: 0 0 0 0.25rem var(--accent-soft); }
-.copyable:focus-visible { outline: 2px solid var(--accent); outline-offset: 0.25rem; }
-.copyable.copied { background: var(--accent); box-shadow: 0 0 0 0.25rem var(--accent); color: #fff; }
+.copyable { cursor: pointer; border-radius: 3px; transition: background 0.12s, box-shadow 0.12s; }
+.copyable:hover { background: var(--stamp-wash); box-shadow: 0 0 0 0.2rem var(--stamp-wash); }
+.copyable.copied { background: var(--stamp); box-shadow: 0 0 0 0.2rem var(--stamp); color: #fff; }
+button.copied { border-color: var(--stamp); color: var(--stamp); }
 
 .toast {
   position: fixed;
   bottom: 1.5rem;
   left: 50%;
-  transform: translate(-50%, 1rem);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  transform: translate(-50%, 0.75rem);
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
   background: var(--ink);
-  color: #fff;
-  font-size: 0.85rem;
+  color: var(--paper);
+  font-size: var(--t-small);
   opacity: 0;
   pointer-events: none;
-  transition: all 0.18s;
+  transition: opacity 0.18s, transform 0.18s;
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-@media (max-width: 1000px) {
-  .layout, .grid { grid-template-columns: 1fr; }
-  .warning { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+/* ---------------------------------------------------------------- small screens */
+
+@media (max-width: 1080px) {
+  .ledgers { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .masthead { flex-direction: column; gap: 0.25rem; padding: 1rem 1.25rem; }
+  .disclaimer { text-align: left; }
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 2rem; padding: 1.25rem; }
+  /* On one column the persona follows the generate form; export and history come after it. */
+  .controls { display: contents; }
+  .controls form { order: 1; }
+  .persona { order: 2; }
+  .batch { order: 3; }
+  .history { order: 4; }
+  .slip { padding: 1.25rem 1.25rem 0; }
+  .slip-top { flex-direction: column; }
+  .slip h2 { font-size: 1.75rem; }
+  .micr { margin: 1.25rem -1.25rem 0; padding: 0.8rem 1.25rem; font-size: 1.05rem; }
 }

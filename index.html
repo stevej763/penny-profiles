@@ -7,15 +7,9 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <header class="topbar">
-      <div class="brand">
-        <span class="logo">£</span>
-        <div>
-          <h1>Penny Profiles</h1>
-          <p>Test personas</p>
-        </div>
-      </div>
-      <span class="warning">Random Test data only: these are fictional people and details, never use for real payments</span>
+    <header class="masthead">
+      <p class="wordmark">Penny Profiles <span>Test personas</span></p>
+      <p class="disclaimer">Random Test data only: these are fictional people and details, never use for real payments</p>
     </header>
 
     <main class="layout">
@@ -37,33 +31,34 @@
           </div>
           <label class="switch">
             <input id="latinOnly" type="checkbox" />
-            <span>Latin script only <span class="hint">(romanise Chinese, Japanese, Russian and Persian details)</span></span>
+            <span>Latin script only<span class="hint">Romanise Chinese, Japanese, Russian and Persian details</span></span>
           </label>
-          <label>Seed <span class="hint">(optional, reproduces a persona)</span>
-            <input id="seed" type="text" inputmode="numeric" placeholder="random" />
+          <label>Seed
+            <input id="seed" type="text" inputmode="numeric" placeholder="Random" />
+            <span class="hint">Enter a seed to reproduce a persona</span>
           </label>
           <button type="submit" class="primary">Generate persona</button>
         </form>
 
         <section class="batch">
-          <h2>Batch export</h2>
+          <h2>Export a batch</h2>
           <div class="row">
             <label>Count <input id="batchCount" type="number" min="1" max="5000" value="100" /></label>
             <label>Scope
               <select id="batchScope">
-                <option value="country">Selected country</option>
+                <option value="country">This country</option>
                 <option value="all">All countries</option>
               </select>
             </label>
           </div>
           <div class="row">
-            <button type="button" id="exportCsv">CSV</button>
-            <button type="button" id="exportJson">JSON</button>
+            <button type="button" id="exportCsv">Download CSV</button>
+            <button type="button" id="exportJson">Download JSON</button>
           </div>
         </section>
 
         <section class="history">
-          <h2>Recent</h2>
+          <h2>Recent personas</h2>
           <ol id="history"></ol>
         </section>
       </aside>
