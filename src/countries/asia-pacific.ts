@@ -66,7 +66,7 @@ export const au: CountryModule = {
       age: dob.age,
       nationality: 'Australian',
       address: {
-        lines: [`${unit ? `${unit}/` : ''}${streetNumber} ${street}`, `${place.city.toUpperCase()} ${place.state} ${postcode}`],
+        lines: [`${unit ? `Unit ${unit}, ` : ''}${streetNumber} ${street}`, `${place.city.toUpperCase()} ${place.state} ${postcode}`],
         structured: postalAddress({
           StrtNm: street,
           BldgNb: streetNumber,

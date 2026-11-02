@@ -46,6 +46,14 @@ Every persona comes from a 32-bit seed. Enter the seed again, or open `#GB-12345
 
 China, Japan, Russia and Iran also show names and addresses in the native script. Russian names include a patronymic, Spanish/Mexican/Portuguese/Brazilian names have two surnames, and CN/JP names are written family name first.
 
+## ISO 20022 structured addresses
+
+Every address also comes as a fully structured ISO 20022 `PostalAddress24` (the version used by pacs.008.001.08 under CBPR+ and by SEPA), with no `AdrLine` elements. CBPR+ stops accepting fully unstructured addresses in November 2026. The UI lists each element and has a **Copy XML** button that produces a `<PstlAdr>` block. JSON exports include it as `address.structured`, and CSV exports have one `PstlAdr.<Tag>` column for each element.
+
+- `TwnNm` and `Ctry` (ISO 3166 alpha-2) are always present. Elements appear in schema order, and lengths follow the XSD limits; a value that's too long throws an error instead of being truncated.
+- Values use the CBPR+ restricted Latin character set, so diacritics are removed (`München` → `Munchen`, `ß` → `ss`). Native-script addresses stay in the human-readable `address.native` field only.
+- Mapping rules: flat/apartment/unit/door → `Room`; Spanish/Portuguese floor → `Flr`; Indian building name → `BldgNm`. Suburb, colonia, bairro, Indian locality and Japanese town (chō) → `TwnLctnNm`; Chinese district and Japanese ward (-ku) → `DstrctNm`; state/province/county/prefecture → `CtrySubDvsn`. Japanese addresses have no street, so chōme-banchi-gō goes in `BldgNb`.
+
 ## How "valid" is valid?
 
 - **Checksums are real.** Each value marked with a ✓ in the UI passes that algorithm. `test/vectors.test.ts` checks every algorithm against published examples. `test/personas.test.ts` generates 250 personas per country and validates them. IBANs and BICs are validated by `ibantools`, and UK accounts by `uk-modulus-checking`, so neither is checked only by our own code.
