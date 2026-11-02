@@ -2,10 +2,11 @@ import type { BankAccount, CountryModule, Field, Gender } from '../core/types';
 import type { Rng } from '../core/rng';
 import { birthDate, email, pickGender, ascii, type BirthDate, type Gendered } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
+import { NAMES, surnameFor } from './names';
 import { postalAddress, type PostalAddressParts } from '../core/iso20022';
-import { luhnCheckDigit, luhnValid, mod97, pad, solveCheckDigit, toDigits, weightedSum } from '../core/checks';
+import { iso7064Mod1110, luhnCheckDigit, luhnValid, mod97, pad, solveCheckDigit, toDigits, weightedSum } from '../core/checks';
 
-interface City {
+export interface City {
   name: string;
   postcode: (rng: Rng) => string;
   region?: string;
@@ -22,14 +23,14 @@ interface PersonContext {
   city: City;
 }
 
-interface Bank {
+export interface Bank {
   name: string;
   bic: string;
   /** `bic` overrides the bank-level BIC when it depends on the branch. */
   generate: (rng: Rng, city: City) => { bban: string; domestic: Field[]; bic?: string };
 }
 
-interface EuroCountryConfig {
+export interface EuroCountryConfig {
   code: string;
   name: string;
   flag: string;
@@ -47,9 +48,9 @@ interface EuroCountryConfig {
   banks: Bank[];
 }
 
-const range = (from: number, to: number, width: number) => (rng: Rng) => pad(rng.int(from, to), width);
+export const range = (from: number, to: number, width: number) => (rng: Rng) => pad(rng.int(from, to), width);
 
-function euroCountry(config: EuroCountryConfig): CountryModule {
+export function euroCountry(config: EuroCountryConfig): CountryModule {
   return {
     code: config.code,
     name: config.name,
@@ -59,8 +60,9 @@ function euroCountry(config: EuroCountryConfig): CountryModule {
     generate(rng, options) {
       const gender = pickGender(rng, options);
       const given = rng.pick(config.given[gender]);
-      let family = rng.pick(config.family);
-      if (config.doubleSurname) family += ' ' + rng.pick(config.family.filter((f) => f !== family));
+      const first = rng.pick(config.family);
+      let family = surnameFor(first, gender);
+      if (config.doubleSurname) family += ' ' + surnameFor(rng.pick(config.family.filter((f) => f !== first)), gender);
       const dob = birthDate(rng, options);
       const city = rng.pick(config.cities);
       const { lines, parts } = config.address(rng, rng.pick(config.streets), city);
@@ -100,9 +102,9 @@ function euroCountry(config: EuroCountryConfig): CountryModule {
   };
 }
 
-const yy = (dob: BirthDate) => pad(dob.year % 100, 2);
-const mm = (dob: BirthDate) => pad(dob.month, 2);
-const dd = (dob: BirthDate) => pad(dob.day, 2);
+export const yy = (dob: BirthDate) => pad(dob.year % 100, 2);
+export const mm = (dob: BirthDate) => pad(dob.month, 2);
+export const dd = (dob: BirthDate) => pad(dob.day, 2);
 
 // ---------------------------------------------------------------------------- Germany
 
@@ -118,16 +120,7 @@ export function deMethod63Valid(account: string): boolean {
 }
 
 /** German Steuer-ID: 11 digits, one digit repeated in the first ten, ISO 7064 MOD 11,10 check digit. */
-export function steuerIdCheckDigit(first10: string): number {
-  let product = 10;
-  for (const d of toDigits(first10)) {
-    let sum = (d + product) % 10;
-    if (sum === 0) sum = 10;
-    product = (sum * 2) % 11;
-  }
-  const check = 11 - product;
-  return check === 10 ? 0 : check;
-}
+export const steuerIdCheckDigit = iso7064Mod1110;
 
 function steuerId(rng: Rng): string {
   let body: string;
@@ -145,11 +138,8 @@ const de = euroCountry({
   name: 'Germany',
   flag: '🇩🇪',
   nationality: 'German',
-  given: {
-    male: ['Lukas', 'Leon', 'Finn', 'Jonas', 'Paul', 'Felix', 'Maximilian', 'Elias', 'Tim', 'Jan', 'Stefan', 'Thomas'],
-    female: ['Anna', 'Emma', 'Mia', 'Hannah', 'Lena', 'Sophie', 'Laura', 'Lea', 'Julia', 'Sarah', 'Katharina', 'Sabine'],
-  },
-  family: ['Müller', 'Schmidt', 'Schneider', 'Fischer', 'Weber', 'Meyer', 'Wagner', 'Becker', 'Schulz', 'Hoffmann', 'Koch', 'Richter', 'Wolf', 'Schröder'],
+  given: NAMES.DE,
+  family: NAMES.DE.family,
   cities: [
     { name: 'Berlin', postcode: range(10115, 14199, 5), meta: { blz: '10070000', bic: 'DEUTDEBBXXX' } },
     { name: 'Hamburg', postcode: range(20095, 22769, 5), meta: { blz: '20070000', bic: 'DEUTDEHHXXX' } },
@@ -201,11 +191,8 @@ const fr = euroCountry({
   name: 'France',
   flag: '🇫🇷',
   nationality: 'French',
-  given: {
-    male: ['Lucas', 'Hugo', 'Louis', 'Gabriel', 'Arthur', 'Jules', 'Thomas', 'Nicolas', 'Julien', 'Antoine'],
-    female: ['Emma', 'Louise', 'Jade', 'Alice', 'Chloé', 'Léa', 'Manon', 'Camille', 'Sarah', 'Juliette'],
-  },
-  family: ['Martin', 'Bernard', 'Dubois', 'Thomas', 'Robert', 'Richard', 'Petit', 'Durand', 'Leroy', 'Moreau', 'Simon', 'Laurent', 'Lefèvre', 'Michel'],
+  given: NAMES.FR,
+  family: NAMES.FR.family,
   cities: [
     { name: 'Paris', postcode: (rng) => `750${pad(rng.int(1, 20), 2)}`, meta: { dept: '75' } },
     { name: 'Lyon', postcode: (rng) => `6900${rng.int(1, 9)}`, meta: { dept: '69' } },
@@ -273,11 +260,8 @@ const es = euroCountry({
   flag: '🇪🇸',
   nationality: 'Spanish',
   doubleSurname: true,
-  given: {
-    male: ['Hugo', 'Martín', 'Lucas', 'Mateo', 'Daniel', 'Alejandro', 'Pablo', 'Javier', 'David', 'Carlos'],
-    female: ['Lucía', 'Sofía', 'Martina', 'María', 'Paula', 'Julia', 'Valeria', 'Carmen', 'Laura', 'Elena'],
-  },
-  family: ['García', 'Rodríguez', 'González', 'Fernández', 'López', 'Martínez', 'Sánchez', 'Pérez', 'Gómez', 'Martín', 'Jiménez', 'Ruiz'],
+  given: NAMES.ES,
+  family: NAMES.ES.family,
   cities: [
     { name: 'Madrid', postcode: range(28001, 28055, 5) },
     { name: 'Barcelona', postcode: range(8001, 8042, 5) },
@@ -357,11 +341,8 @@ const it = euroCountry({
   name: 'Italy',
   flag: '🇮🇹',
   nationality: 'Italian',
-  given: {
-    male: ['Leonardo', 'Francesco', 'Alessandro', 'Lorenzo', 'Mattia', 'Andrea', 'Gabriele', 'Marco', 'Luca', 'Giuseppe'],
-    female: ['Sofia', 'Giulia', 'Aurora', 'Alice', 'Ginevra', 'Emma', 'Giorgia', 'Francesca', 'Chiara', 'Martina'],
-  },
-  family: ['Rossi', 'Russo', 'Ferrari', 'Esposito', 'Bianchi', 'Romano', 'Colombo', 'Ricci', 'Marino', 'Greco', 'Bruno', 'Gallo'],
+  given: NAMES.IT,
+  family: NAMES.IT.family,
   cities: [
     { name: 'Roma', postcode: range(118, 199, 5), meta: { prov: 'RM', belfiore: 'H501' } },
     { name: 'Milano', postcode: range(20121, 20162, 5), meta: { prov: 'MI', belfiore: 'F205' } },
@@ -422,11 +403,8 @@ const nl = euroCountry({
   name: 'Netherlands',
   flag: '🇳🇱',
   nationality: 'Dutch',
-  given: {
-    male: ['Daan', 'Sem', 'Lucas', 'Levi', 'Finn', 'Bram', 'Thijs', 'Jesse', 'Ruben', 'Lars'],
-    female: ['Emma', 'Julia', 'Mila', 'Tess', 'Sophie', 'Zoë', 'Sara', 'Anna', 'Eva', 'Lotte'],
-  },
-  family: ['de Jong', 'Jansen', 'de Vries', 'van den Berg', 'van Dijk', 'Bakker', 'Janssen', 'Visser', 'Smit', 'Meijer', 'de Boer', 'Mulder'],
+  given: NAMES.NL,
+  family: NAMES.NL.family,
   cities: [
     { name: 'Amsterdam', postcode: range(1011, 1109, 4) },
     { name: 'Rotterdam', postcode: range(3011, 3089, 4) },
@@ -486,11 +464,8 @@ const ie = euroCountry({
   name: 'Ireland',
   flag: '🇮🇪',
   nationality: 'Irish',
-  given: {
-    male: ['Jack', 'James', 'Noah', 'Conor', 'Daniel', 'Seán', 'Cian', 'Oisín', 'Patrick', 'Darragh'],
-    female: ['Emily', 'Grace', 'Fiadh', 'Sophie', 'Aoife', 'Saoirse', 'Ciara', 'Niamh', 'Róisín', 'Siobhán'],
-  },
-  family: ['Murphy', 'Kelly', "O'Sullivan", 'Walsh', 'Smith', "O'Brien", 'Byrne', 'Ryan', "O'Connor", "O'Neill", 'Doyle', 'McCarthy'],
+  given: NAMES.IE,
+  family: NAMES.IE.family,
   cities: [
     { name: 'Dublin', postcode: (rng) => `D${pad(rng.pick([1, 2, 4, 6, 7, 8, 12, 14, 24]), 2)}`, region: 'Co. Dublin' },
     { name: 'Cork', postcode: () => 'T12', region: 'Co. Cork' },
@@ -537,11 +512,8 @@ const be = euroCountry({
   name: 'Belgium',
   flag: '🇧🇪',
   nationality: 'Belgian',
-  given: {
-    male: ['Lucas', 'Louis', 'Noah', 'Arthur', 'Liam', 'Adam', 'Jules', 'Victor', 'Thomas', 'Mathis'],
-    female: ['Olivia', 'Emma', 'Louise', 'Mila', 'Alice', 'Elena', 'Juliette', 'Lina', 'Marie', 'Sofia'],
-  },
-  family: ['Peeters', 'Janssens', 'Maes', 'Jacobs', 'Mertens', 'Willems', 'Claes', 'Goossens', 'Wouters', 'De Smet', 'Dubois', 'Lambert'],
+  given: NAMES.BE,
+  family: NAMES.BE.family,
   cities: [
     { name: 'Bruxelles', postcode: () => '1000', meta: { lang: 'fr' } },
     { name: 'Antwerpen', postcode: () => '2000', meta: { lang: 'nl' } },
@@ -599,11 +571,8 @@ const at = euroCountry({
   name: 'Austria',
   flag: '🇦🇹',
   nationality: 'Austrian',
-  given: {
-    male: ['Lukas', 'Tobias', 'David', 'Elias', 'Jakob', 'Maximilian', 'Florian', 'Paul', 'Simon', 'Michael'],
-    female: ['Anna', 'Hannah', 'Lena', 'Sarah', 'Sophia', 'Laura', 'Katharina', 'Marie', 'Julia', 'Valentina'],
-  },
-  family: ['Gruber', 'Huber', 'Bauer', 'Wagner', 'Müller', 'Pichler', 'Steiner', 'Moser', 'Mayer', 'Hofer', 'Leitner', 'Berger'],
+  given: NAMES.AT,
+  family: NAMES.AT.family,
   cities: [
     { name: 'Wien', postcode: (rng) => `1${pad(rng.int(1, 23), 2)}0` },
     { name: 'Graz', postcode: (rng) => `80${pad(rng.int(1, 6) * 10, 2)}` },
@@ -662,11 +631,8 @@ const pt = euroCountry({
   flag: '🇵🇹',
   nationality: 'Portuguese',
   doubleSurname: true,
-  given: {
-    male: ['João', 'Francisco', 'Afonso', 'Duarte', 'Tomás', 'Rodrigo', 'Martim', 'Pedro', 'Miguel', 'Tiago'],
-    female: ['Maria', 'Leonor', 'Matilde', 'Beatriz', 'Carolina', 'Ana', 'Inês', 'Mariana', 'Sofia', 'Francisca'],
-  },
-  family: ['Silva', 'Santos', 'Ferreira', 'Pereira', 'Oliveira', 'Costa', 'Rodrigues', 'Martins', 'Sousa', 'Fernandes', 'Gonçalves', 'Almeida'],
+  given: NAMES.PT,
+  family: NAMES.PT.family,
   cities: [
     { name: 'Lisboa', postcode: (rng) => `${rng.int(1000, 1990)}-${rng.digits(3)}` },
     { name: 'Porto', postcode: (rng) => `${rng.int(4000, 4369)}-${rng.digits(3)}` },
@@ -719,11 +685,8 @@ const fi = euroCountry({
   name: 'Finland',
   flag: '🇫🇮',
   nationality: 'Finnish',
-  given: {
-    male: ['Leo', 'Elias', 'Oliver', 'Eino', 'Väinö', 'Onni', 'Mikael', 'Juho', 'Matti', 'Antti'],
-    female: ['Aino', 'Eevi', 'Olivia', 'Helmi', 'Sofia', 'Aada', 'Emilia', 'Ella', 'Laura', 'Johanna'],
-  },
-  family: ['Korhonen', 'Virtanen', 'Mäkinen', 'Nieminen', 'Mäkelä', 'Hämäläinen', 'Laine', 'Heikkinen', 'Koskinen', 'Järvinen', 'Lehtonen', 'Lehtinen'],
+  given: NAMES.FI,
+  family: NAMES.FI.family,
   cities: [
     { name: 'Helsinki', postcode: (rng) => `00${pad(rng.int(10, 99), 2)}0` },
     { name: 'Espoo', postcode: (rng) => `02${pad(rng.int(10, 99), 2)}0` },

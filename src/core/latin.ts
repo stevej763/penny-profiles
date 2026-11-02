@@ -1,5 +1,23 @@
 import type { Field, Persona } from './types';
 
+/** Letters that Unicode decomposition (NFD) can't reduce to a base letter plus accent. */
+const FOLD: Record<string, string> = {
+  ß: 'ss', ẞ: 'SS', æ: 'ae', Æ: 'AE', œ: 'oe', Œ: 'OE', ø: 'o', Ø: 'O', ł: 'l', Ł: 'L', đ: 'd', Đ: 'D',
+  ð: 'd', Ð: 'D', þ: 'th', Þ: 'Th', ı: 'i', ħ: 'h', Ħ: 'H',
+};
+
+/**
+ * Reduce accented and special Latin letters to plain A–Z: "Łukasz" → "Lukasz", "Işık" → "Isik",
+ * "Đurđević" → "Durdevic". Characters from other scripts pass through untouched.
+ */
+export function foldToLatin(value: string): string {
+  return value
+    .replace(/[ßẞæÆœŒøØłŁđĐðÐþÞıħĦ]/g, (c) => FOLD[c])
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .normalize('NFC');
+}
+
 /** Any character outside the Latin script (punctuation, digits and emoji count as "Common"). */
 export const NON_LATIN = /[^\p{Script=Latin}\p{Script=Common}\p{Script=Inherited}]/u;
 

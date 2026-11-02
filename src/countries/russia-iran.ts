@@ -2,6 +2,7 @@ import type { CountryModule } from '../core/types';
 import { birthDate, email, pickGender } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { postalAddress } from '../core/iso20022';
+import { IR_FAMILY, IR_GIVEN, RU_FAMILY, RU_GIVEN, RU_PATRONYMIC } from './names';
 import { luhnCheckDigit, solveCheckDigit, weightedSum } from '../core/checks';
 
 // ---------------------------------------------------------------------------- Russia
@@ -29,22 +30,6 @@ export function snilsCheck(nine: string): string {
   return String(r === 100 ? 0 : r).padStart(2, '0');
 }
 
-const RU_NAMES = {
-  male: [['Александр', 'Alexander'], ['Дмитрий', 'Dmitry'], ['Максим', 'Maxim'], ['Сергей', 'Sergey'], ['Андрей', 'Andrey'], ['Алексей', 'Alexey'], ['Иван', 'Ivan'], ['Михаил', 'Mikhail']],
-  female: [['Анна', 'Anna'], ['Мария', 'Maria'], ['Елена', 'Elena'], ['Ольга', 'Olga'], ['Наталья', 'Natalya'], ['Татьяна', 'Tatyana'], ['Екатерина', 'Ekaterina'], ['Ирина', 'Irina']],
-};
-/** [Cyrillic male, Cyrillic female, Latin male, Latin female] */
-const RU_FAMILY = [
-  ['Иванов', 'Иванова', 'Ivanov', 'Ivanova'], ['Смирнов', 'Смирнова', 'Smirnov', 'Smirnova'], ['Кузнецов', 'Кузнецова', 'Kuznetsov', 'Kuznetsova'],
-  ['Попов', 'Попова', 'Popov', 'Popova'], ['Васильев', 'Васильева', 'Vasilyev', 'Vasilyeva'], ['Петров', 'Петрова', 'Petrov', 'Petrova'],
-  ['Соколов', 'Соколова', 'Sokolov', 'Sokolova'], ['Новиков', 'Новикова', 'Novikov', 'Novikova'], ['Фёдоров', 'Фёдорова', 'Fedorov', 'Fedorova'],
-];
-const RU_PATRONYMIC = [
-  ['Александрович', 'Александровна', 'Alexandrovich', 'Alexandrovna'], ['Дмитриевич', 'Дмитриевна', 'Dmitrievich', 'Dmitrievna'],
-  ['Сергеевич', 'Сергеевна', 'Sergeevich', 'Sergeevna'], ['Андреевич', 'Андреевна', 'Andreevich', 'Andreevna'],
-  ['Иванович', 'Ивановна', 'Ivanovich', 'Ivanovna'], ['Михайлович', 'Михайловна', 'Mikhailovich', 'Mikhailovna'],
-  ['Алексеевич', 'Алексеевна', 'Alexeevich', 'Alexeevna'], ['Владимирович', 'Владимировна', 'Vladimirovich', 'Vladimirovna'],
-];
 const RU_CITIES = [
   { ru: 'Москва', en: 'Moscow', postcodes: ['101000', '105064', '109012', '115054', '119019', '123100'] },
   { ru: 'Санкт-Петербург', en: 'Saint Petersburg', postcodes: ['190000', '191025', '194044', '197101'] },
@@ -65,11 +50,11 @@ export const ru: CountryModule = {
   name: 'Russia',
   flag: '🇷🇺',
   currency: 'RUB',
-  group: 'Europe & Middle East',
+  group: 'Europe (non-euro)',
   generate(rng, options) {
     const gender = pickGender(rng, options);
     const g = gender === 'male' ? 0 : 1;
-    const [givenRu, given] = rng.pick(RU_NAMES[gender]);
+    const [givenRu, given] = rng.pick(RU_GIVEN[gender]);
     const familyRow = rng.pick(RU_FAMILY);
     const patronymicRow = rng.pick(RU_PATRONYMIC);
     const familyRu = familyRow[g];
@@ -161,11 +146,6 @@ export function iranNationalCodeValid(code: string): boolean {
 
 const toPersianDigits = (s: string) => s.replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)]);
 
-const IR_NAMES = {
-  male: [['محمد', 'Mohammad'], ['علی', 'Ali'], ['حسین', 'Hossein'], ['رضا', 'Reza'], ['مهدی', 'Mehdi'], ['امیر', 'Amir'], ['آرش', 'Arash']],
-  female: [['فاطمه', 'Fatemeh'], ['زهرا', 'Zahra'], ['مریم', 'Maryam'], ['سارا', 'Sara'], ['نرگس', 'Narges'], ['لیلا', 'Leila'], ['شیرین', 'Shirin']],
-};
-const IR_FAMILY = [['محمدی', 'Mohammadi'], ['حسینی', 'Hosseini'], ['احمدی', 'Ahmadi'], ['رضایی', 'Rezaei'], ['کریمی', 'Karimi'], ['موسوی', 'Mousavi'], ['جعفری', 'Jafari'], ['رحیمی', 'Rahimi']];
 const IR_CITIES = [
   { fa: 'تهران', en: 'Tehran', province: 'Tehran', postPrefix: '1' },
   { fa: 'مشهد', en: 'Mashhad', province: 'Razavi Khorasan', postPrefix: '9' },
@@ -186,10 +166,10 @@ export const ir: CountryModule = {
   name: 'Iran',
   flag: '🇮🇷',
   currency: 'IRR',
-  group: 'Europe & Middle East',
+  group: 'Middle East & Africa',
   generate(rng, options) {
     const gender = pickGender(rng, options);
-    const [givenFa, given] = rng.pick(IR_NAMES[gender]);
+    const [givenFa, given] = rng.pick(IR_GIVEN[gender]);
     const [familyFa, family] = rng.pick(IR_FAMILY);
     const dob = birthDate(rng, options);
 

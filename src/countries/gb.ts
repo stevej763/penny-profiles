@@ -4,13 +4,11 @@ import { birthDate, email, pickGender } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { pad } from '../core/checks';
 import { postalAddress } from '../core/iso20022';
+import { NAMES } from './names';
 import { UK_BANKS, methodLabel, passesAll } from './gb-modulus';
 
-const GIVEN = {
-  male: ['Oliver', 'George', 'Harry', 'Jack', 'Jacob', 'Noah', 'Charlie', 'Thomas', 'James', 'William', 'Daniel', 'Mohammed', 'Samuel', 'Joshua', 'Liam', 'Ethan', 'Arjun', 'Callum'],
-  female: ['Olivia', 'Amelia', 'Isla', 'Ava', 'Emily', 'Sophie', 'Grace', 'Lily', 'Chloe', 'Jessica', 'Charlotte', 'Ella', 'Hannah', 'Priya', 'Freya', 'Evie', 'Aisha', 'Niamh'],
-};
-const FAMILY = ['Smith', 'Jones', 'Taylor', 'Brown', 'Williams', 'Wilson', 'Johnson', 'Davies', 'Patel', 'Robinson', 'Wright', 'Thompson', 'Evans', 'Walker', 'White', 'Roberts', 'Green', 'Hall', 'Khan', 'Clarke', 'Lewis', 'Hughes', 'Edwards', 'Wood', 'Campbell', "O'Brien"];
+const { male, female, family: FAMILY } = NAMES.GB;
+const GIVEN = { male, female };
 const STREETS = ['High Street', 'Station Road', 'Church Lane', 'Victoria Road', 'Park Avenue', 'Mill Lane', 'Queen Street', "King's Road", 'Grange Road', 'Manor Way', 'Elm Grove', 'Oak Close', 'Willow Crescent', 'Albert Street', 'The Green', 'Chapel Street', 'Springfield Road'];
 const CITIES = [
   { city: 'London', region: 'Greater London', outward: ['SW1A', 'SE1', 'E1', 'N1', 'NW1', 'W1D', 'EC1A', 'SW11', 'E14'] },

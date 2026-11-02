@@ -1,6 +1,7 @@
 import type { Gender, GenerateOptions } from './types';
 import type { Rng } from './rng';
 import { pad } from './checks';
+import { foldToLatin } from './latin';
 
 export interface BirthDate {
   year: number;
@@ -29,7 +30,7 @@ export function birthDate(rng: Rng, options: Required<GenerateOptions>, today = 
 
 /** Strip diacritics so names can be used in emails and Latin-only identifiers. */
 export function ascii(value: string): string {
-  return value.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ß/g, 'ss');
+  return foldToLatin(value);
 }
 
 const EMAIL_DOMAINS = ['example.com', 'example.net', 'example.org'];

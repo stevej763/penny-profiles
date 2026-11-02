@@ -7,6 +7,7 @@ import { luhnValid, verhoeffValid } from '../src/core/checks';
 import { irdValid, nzAccountValid, tfnValid, cnIdCheck } from '../src/countries/asia-pacific';
 import { innPersonalValid, iranNationalCodeValid, ruAccountValid } from '../src/countries/russia-iran';
 import { abaValid, cpfValid } from '../src/countries/americas';
+import { nubanCheck } from '../src/countries/ng';
 
 const require = createRequire(import.meta.url);
 const oracle = require('uk-modulus-checking');
@@ -122,4 +123,35 @@ describe('country-specific identifiers', () => {
   });
 
   it('BR CPF', () => personas('BR').forEach((p) => expect(cpfValid(field(p, 'CPF'))).toBe(true)));
+});
+
+it('KR resident registration numbers use place-of-birth codes 00–96', () => {
+  for (let i = 0; i < 300; i++) {
+    const p = generatePersona('KR', {}, i);
+    const rrn = field(p, 'Resident registration').replace('-', '');
+    expect(Number(rrn.slice(7, 9))).toBeLessThanOrEqual(96);
+  }
+});
+
+describe('batch 4 identifiers', () => {
+  it('AE Emirates ID: 784, birth year, Luhn', () => {
+    for (let i = 0; i < 300; i++) {
+      const p = generatePersona('AE', {}, i);
+      const id = digits(field(p, 'Emirates ID'));
+      expect(id.slice(0, 3)).toBe('784');
+      expect(id.slice(3, 7)).toBe(p.dateOfBirth.slice(0, 4));
+      expect(luhnValid(id)).toBe(true);
+    }
+  });
+  it('NG NUBAN check digit matches the bank code', () => {
+    for (let i = 0; i < 300; i++) {
+      const p = generatePersona('NG', {}, i);
+      const nuban = field(p, 'Account number (NUBAN)');
+      expect(nubanCheck(field(p, 'Bank code'), nuban.slice(0, 9))).toBe(Number(nuban[9]));
+    }
+  });
+  it('AE mixes Emirati and expatriate residents', () => {
+    const nationalities = new Set(Array.from({ length: 200 }, (_, i) => generatePersona('AE', {}, i).nationality));
+    expect(nationalities.size).toBeGreaterThanOrEqual(4);
+  });
 });

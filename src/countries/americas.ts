@@ -2,6 +2,7 @@ import type { CountryModule } from '../core/types';
 import { ascii, birthDate, email, pickGender, type BirthDate } from '../core/person';
 import { formatIban, makeIban } from '../core/iban';
 import { postalAddress } from '../core/iso20022';
+import { NAMES } from './names';
 import { luhnCheckDigit, pad, weightedSum } from '../core/checks';
 
 // ---------------------------------------------------------------------------- United States
@@ -37,13 +38,10 @@ export const us: CountryModule = {
   group: 'Americas',
   generate(rng, options) {
     const gender = pickGender(rng, options);
-    const names =
-      gender === 'male'
-        ? ['James', 'Michael', 'Robert', 'John', 'David', 'William', 'Christopher', 'Daniel', 'Matthew', 'Anthony', 'Jose', 'Tyler']
-        : ['Mary', 'Jennifer', 'Linda', 'Elizabeth', 'Jessica', 'Sarah', 'Ashley', 'Emily', 'Madison', 'Olivia', 'Maria', 'Taylor'];
+    const names = NAMES.US[gender];
     const given = rng.pick(names);
     const middle = rng.pick(names.filter((n) => n !== given));
-    const family = rng.pick(['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Wilson', 'Anderson', 'Thomas', 'Moore', 'Jackson', 'Lee']);
+    const family = rng.pick(NAMES.US.family);
     const dob = birthDate(rng, options);
     const place = rng.pick(US_CITIES);
     const zip = pad(rng.int(place.zip[0], place.zip[1]), 5);
@@ -161,12 +159,8 @@ export const mx: CountryModule = {
   group: 'Americas',
   generate(rng, options) {
     const gender = pickGender(rng, options);
-    const given = rng.pick(
-      gender === 'male'
-        ? ['Juan', 'Luis', 'Carlos', 'Miguel', 'Jorge', 'Alejandro', 'Fernando', 'Ricardo', 'Diego', 'Santiago']
-        : ['Guadalupe', 'Ana', 'Sofía', 'Fernanda', 'Daniela', 'Valeria', 'Gabriela', 'Alejandra', 'Ximena', 'Regina'],
-    );
-    const surnames = ['Hernández', 'García', 'Martínez', 'López', 'González', 'Rodríguez', 'Pérez', 'Sánchez', 'Ramírez', 'Flores', 'Torres', 'Morales'];
+    const given = rng.pick(NAMES.MX[gender]);
+    const surnames = NAMES.MX.family;
     const paternal = rng.pick(surnames);
     const maternal = rng.pick(surnames.filter((s) => s !== paternal));
     const dob = birthDate(rng, options);
@@ -267,7 +261,7 @@ const BR_BANKS = [
     ispb: '60701190',
     make: (agencia: string, rng: () => string) => {
       const conta = rng().slice(0, 5);
-      return { conta, contaDv: luhnCheckDigit(agencia + conta), agenciaDv: null as string | null, rule: 'Itaú mod 10 (agência + conta)' };
+      return { conta, contaDv: luhnCheckDigit(agencia + conta), agenciaDv: null as string | null };
     },
   },
   {
@@ -280,7 +274,7 @@ const BR_BANKS = [
       const r = weightedSum(conta, [2, 7, 6, 5, 4, 3, 2]) % 11;
       const a = mod11Dv(agencia, [5, 4, 3, 2]);
       if (r === 1 || a === 10) return null;
-      return { conta, contaDv: String(r === 0 ? 0 : 11 - r), agenciaDv: String(a === 11 ? 0 : a), rule: 'Bradesco mod 11' };
+      return { conta, contaDv: String(r === 0 ? 0 : 11 - r), agenciaDv: String(a === 11 ? 0 : a) };
     },
   },
   {
@@ -293,7 +287,7 @@ const BR_BANKS = [
       const c = mod11Dv(conta, [9, 8, 7, 6, 5, 4, 3, 2]);
       const a = mod11Dv(agencia, [5, 4, 3, 2]);
       if (c === 10 || a === 10) return null;
-      return { conta, contaDv: String(c === 11 ? 0 : c), agenciaDv: String(a === 11 ? 0 : a), rule: 'Banco do Brasil mod 11' };
+      return { conta, contaDv: String(c === 11 ? 0 : c), agenciaDv: String(a === 11 ? 0 : a) };
     },
   },
 ];
@@ -316,12 +310,8 @@ export const br: CountryModule = {
   group: 'Americas',
   generate(rng, options) {
     const gender = pickGender(rng, options);
-    const given = rng.pick(
-      gender === 'male'
-        ? ['Lucas', 'Gabriel', 'Pedro', 'Rafael', 'Matheus', 'João', 'Gustavo', 'Felipe', 'Bruno', 'Thiago']
-        : ['Ana', 'Maria', 'Juliana', 'Beatriz', 'Larissa', 'Camila', 'Fernanda', 'Mariana', 'Letícia', 'Isabela'],
-    );
-    const surnames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Pereira', 'Costa', 'Rodrigues', 'Almeida', 'Ferreira', 'Lima', 'Carvalho', 'Gomes'];
+    const given = rng.pick(NAMES.BR[gender]);
+    const surnames = NAMES.BR.family;
     const mother = rng.pick(surnames);
     const father = rng.pick(surnames.filter((s) => s !== mother));
     const family = `${mother} ${father}`;
@@ -390,7 +380,8 @@ export const br: CountryModule = {
         domestic: [
           { label: 'Banco (COMPE)', value: bank.compe },
           { label: 'Agência', value: acct.agenciaDv ? `${agencia}-${acct.agenciaDv}` : agencia },
-          { label: 'Conta corrente', value: `${acct.conta}-${acct.contaDv}`, check: acct.rule },
+          // Bank-specific DVs have no official public specification, so they are not marked as checked.
+          { label: 'Conta corrente', value: `${acct.conta}-${acct.contaDv}` },
         ],
         international: [
           { label: 'IBAN', value: formatIban(iban), check: 'ISO 13616 mod 97' },

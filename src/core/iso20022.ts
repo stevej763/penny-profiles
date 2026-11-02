@@ -1,3 +1,5 @@
+import { foldToLatin } from './latin';
+
 /**
  * ISO 20022 structured postal address (PostalAddress24, as used by pacs.008.001.08 under
  * SWIFT CBPR+ and by SEPA). CBPR+ is retiring fully unstructured addresses (November 2026),
@@ -48,13 +50,8 @@ export const CBPR_TEXT = /^[0-9a-zA-Z/\-?:().,'+ !#$%&*=^_`{|}~";<>@[\\\]]+$/;
 
 /** Transliterate to the CBPR+ character set: strip diacritics, expand ß/æ/ø, drop anything else. */
 export function toCbprText(value: string): string {
-  return value
-    .replace(/ß/g, 'ss')
-    .replace(/[Ææ]/g, (c) => (c === 'Æ' ? 'AE' : 'ae'))
-    .replace(/[Øø]/g, (c) => (c === 'Ø' ? 'O' : 'o'))
+  return foldToLatin(value)
     .replace(/[º°]/g, '')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
     .replace(/[^0-9a-zA-Z/\-?:().,'+ !#$%&*=^_`{|}~";<>@[\\\]]/g, '')
     .replace(/\s+/g, ' ')
     .trim();

@@ -76,4 +76,16 @@ export function solveCheckDigit(isValid: (candidate: string) => boolean, alphabe
   return '';
 }
 
+/** ISO 7064 MOD 11,10 check digit (German Steuer-ID, Croatian OIB and account numbers). */
+export function iso7064Mod1110(digits: string): number {
+  let product = 10;
+  for (const d of toDigits(digits)) {
+    let sum = (d + product) % 10;
+    if (sum === 0) sum = 10;
+    product = (sum * 2) % 11;
+  }
+  const check = 11 - product;
+  return check === 10 ? 0 : check;
+}
+
 export const pad = (value: string | number, length: number): string => String(value).padStart(length, '0');

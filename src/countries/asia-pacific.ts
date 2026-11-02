@@ -2,6 +2,7 @@ import type { CountryModule } from '../core/types';
 import type { Rng } from '../core/rng';
 import { birthDate, email, pickGender, type BirthDate } from '../core/person';
 import { postalAddress } from '../core/iso20022';
+import { CN_GIVEN, CN_SURNAMES, JP_FAMILY, JP_GIVEN, NAMES } from './names';
 import { luhnCheckDigit, pad, solveCheckDigit, verhoeffValid, weightedSum } from '../core/checks';
 
 const yyyymmdd = (dob: BirthDate) => `${dob.year}${pad(dob.month, 2)}${pad(dob.day, 2)}`;
@@ -37,12 +38,8 @@ export const au: CountryModule = {
   group: 'Asia-Pacific',
   generate(rng, options) {
     const gender = pickGender(rng, options);
-    const given = rng.pick(
-      gender === 'male'
-        ? ['Oliver', 'Jack', 'William', 'Noah', 'Thomas', 'Lachlan', 'Cooper', 'Riley', 'Liam', 'Ethan', 'Hamish']
-        : ['Charlotte', 'Olivia', 'Mia', 'Ava', 'Chloe', 'Isla', 'Matilda', 'Ruby', 'Sophie', 'Grace', 'Zoe'],
-    );
-    const family = rng.pick(['Smith', 'Jones', 'Williams', 'Brown', 'Wilson', 'Taylor', 'Nguyen', 'Johnson', 'Martin', 'White', 'Anderson', 'Walker', 'Thompson', 'Kelly']);
+    const given = rng.pick(NAMES.AU[gender]);
+    const family = rng.pick(NAMES.AU.family);
     const dob = birthDate(rng, options);
     const place = rng.pick(AU_CITIES);
     const postcode = String(rng.int(place.postcode[0], place.postcode[1]));
@@ -149,12 +146,8 @@ export const nz: CountryModule = {
   group: 'Asia-Pacific',
   generate(rng, options) {
     const gender = pickGender(rng, options);
-    const given = rng.pick(
-      gender === 'male'
-        ? ['Oliver', 'Jack', 'Noah', 'Leo', 'George', 'Lucas', 'Charlie', 'Mason', 'Nikau', 'Tama', 'Wiremu']
-        : ['Isla', 'Charlotte', 'Amelia', 'Olivia', 'Mia', 'Harper', 'Aria', 'Ruby', 'Mere', 'Aroha', 'Anahera'],
-    );
-    const family = rng.pick(['Smith', 'Wilson', 'Williams', 'Brown', 'Taylor', 'Jones', 'Singh', 'Anderson', 'Thompson', 'Walker', 'Ngata', 'Parata', 'Tipene']);
+    const given = rng.pick(NAMES.NZ[gender]);
+    const family = rng.pick(NAMES.NZ.family);
     const dob = birthDate(rng, options);
     const place = rng.pick(NZ_CITIES);
     const postcode = String(rng.int(place.postcode[0], place.postcode[1]));
@@ -215,13 +208,6 @@ export function cnIdCheck(first17: string): string {
   return '10X98765432'[weightedSum(first17, CN_ID_WEIGHTS) % 11];
 }
 
-const CN_SURNAMES: [string, string][] = [
-  ['王', 'Wang'], ['李', 'Li'], ['张', 'Zhang'], ['刘', 'Liu'], ['陈', 'Chen'], ['杨', 'Yang'], ['黄', 'Huang'], ['赵', 'Zhao'], ['吴', 'Wu'], ['周', 'Zhou'], ['徐', 'Xu'], ['孙', 'Sun'],
-];
-const CN_GIVEN: Record<'male' | 'female', [string, string][]> = {
-  male: [['伟', 'Wei'], ['强', 'Qiang'], ['磊', 'Lei'], ['军', 'Jun'], ['洋', 'Yang'], ['勇', 'Yong'], ['杰', 'Jie'], ['涛', 'Tao'], ['明', 'Ming'], ['超', 'Chao'], ['浩然', 'Haoran'], ['子轩', 'Zixuan']],
-  female: [['芳', 'Fang'], ['娜', 'Na'], ['敏', 'Min'], ['静', 'Jing'], ['丽', 'Li'], ['艳', 'Yan'], ['娟', 'Juan'], ['秀英', 'Xiuying'], ['婷', 'Ting'], ['雪', 'Xue'], ['欣怡', 'Xinyi'], ['梓涵', 'Zihan']],
-};
 const CN_CITIES = [
   { zh: '北京市', province: '', en: 'Beijing', provinceEn: '', districtZh: '东城区', districtEn: 'Dongcheng District', postcode: '100010', idPrefix: '110101', cnaps: '1000', streets: [['王府井大街', 'Wangfujing Street'], ['东单北大街', 'Dongdan North Street'], ['朝阳门内大街', 'Chaoyangmennei Street']] },
   { zh: '上海市', province: '', en: 'Shanghai', provinceEn: '', districtZh: '黄浦区', districtEn: 'Huangpu District', postcode: '200001', idPrefix: '310101', cnaps: '2900', streets: [['南京东路', 'East Nanjing Road'], ['淮海中路', 'Middle Huaihai Road'], ['西藏中路', 'Middle Xizang Road']] },
@@ -334,14 +320,6 @@ export function myNumberCheck(first11: string): number {
   return r <= 1 ? 0 : 11 - r;
 }
 
-const JP_FAMILY: [string, string, string][] = [
-  ['佐藤', 'Sato', 'サトウ'], ['鈴木', 'Suzuki', 'スズキ'], ['高橋', 'Takahashi', 'タカハシ'], ['田中', 'Tanaka', 'タナカ'], ['伊藤', 'Ito', 'イトウ'],
-  ['渡辺', 'Watanabe', 'ワタナベ'], ['山本', 'Yamamoto', 'ヤマモト'], ['中村', 'Nakamura', 'ナカムラ'], ['小林', 'Kobayashi', 'コバヤシ'], ['加藤', 'Kato', 'カトウ'],
-];
-const JP_GIVEN: Record<'male' | 'female', [string, string, string][]> = {
-  male: [['翔太', 'Shota', 'ショウタ'], ['大輔', 'Daisuke', 'ダイスケ'], ['健太', 'Kenta', 'ケンタ'], ['拓也', 'Takuya', 'タクヤ'], ['直樹', 'Naoki', 'ナオキ'], ['蓮', 'Ren', 'レン'], ['悠真', 'Yuma', 'ユウマ']],
-  female: [['陽子', 'Yoko', 'ヨウコ'], ['美咲', 'Misaki', 'ミサキ'], ['結衣', 'Yui', 'ユイ'], ['さくら', 'Sakura', 'サクラ'], ['愛', 'Ai', 'アイ'], ['恵子', 'Keiko', 'ケイコ'], ['陽菜', 'Hina', 'ヒナ']],
-};
 const JP_AREAS = [
   { pref: '東京都', city: '千代田区', town: '丸の内', townEn: 'Marunouchi', wardEn: 'Chiyoda-ku', cityEn: 'Tokyo', prefEn: 'Tokyo', postcode: '100-0005' },
   { pref: '東京都', city: '渋谷区', town: '渋谷', townEn: 'Shibuya', wardEn: 'Shibuya-ku', cityEn: 'Tokyo', prefEn: 'Tokyo', postcode: '150-0002' },
@@ -471,12 +449,8 @@ export const india: CountryModule = {
   group: 'Asia-Pacific',
   generate(rng, options) {
     const gender = pickGender(rng, options);
-    const given = rng.pick(
-      gender === 'male'
-        ? ['Aarav', 'Arjun', 'Rohan', 'Vikram', 'Rahul', 'Aditya', 'Karthik', 'Siddharth', 'Amit', 'Vihaan']
-        : ['Priya', 'Ananya', 'Kavya', 'Neha', 'Pooja', 'Divya', 'Lakshmi', 'Aditi', 'Sneha', 'Ishita'],
-    );
-    const family = rng.pick(['Sharma', 'Patel', 'Singh', 'Kumar', 'Gupta', 'Reddy', 'Iyer', 'Nair', 'Das', 'Mehta', 'Joshi', 'Banerjee']);
+    const given = rng.pick(NAMES.IN[gender]);
+    const family = rng.pick(NAMES.IN.family);
     const dob = birthDate(rng, options);
     const place = rng.pick(IN_CITIES);
     const pin = String(rng.int(place.pin[0], place.pin[1]));
@@ -531,7 +505,7 @@ export const india: CountryModule = {
           { label: 'IFSC (often requested)', value: ifsc },
           { label: 'IBAN', value: 'Not used in India' },
         ],
-        extras: [{ label: 'UPI ID', value: `${given.toLowerCase()}.${family.toLowerCase()}${rng.int(1, 99)}@${bank.upi}` }],
+        extras: [{ label: 'UPI ID', value: `${given.toLowerCase()}.${family.toLowerCase().replace(/[^a-z]/g, '')}${rng.int(1, 99)}@${bank.upi}` }],
       },
     };
   },

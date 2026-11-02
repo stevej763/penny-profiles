@@ -7,6 +7,20 @@ import { cnIdCheck, irdValid, myNumberCheck, nzAccountValid, tfnValid } from '..
 import { innPersonalValid, iranNationalCodeValid, ruAccountValid, ruCorrespondentValid, snilsCheck } from '../src/countries/russia-iran';
 import { abaValid, clabeCheck, cpfValid, rfcCheck } from '../src/countries/americas';
 import { mod97 } from '../src/core/checks';
+import { ean13Check } from '../src/countries/ch';
+import { peselCheck, plSortCodeCheck } from '../src/countries/pl';
+import { fodselsnummerChecks, noAccountCheck } from '../src/countries/no';
+import { seType1Valid } from '../src/countries/se';
+import { iso7064Mod1110 } from '../src/core/checks';
+import { isikukoodCheck } from '../src/countries/ee';
+import { skAccountValid } from '../src/countries/sk';
+import { tcKimlikChecks } from '../src/countries/tr';
+import { afmCheck } from '../src/countries/gr';
+import { rnokppCheck } from '../src/countries/ua';
+import { rrnCheck } from '../src/countries/kr';
+import { nubanCheck } from '../src/countries/ng';
+import { rifCheck } from '../src/countries/ve';
+import { hijriDate } from '../src/countries/sa';
 
 describe('shared algorithms', () => {
   it('Luhn', () => expect(luhnValid('79927398713')).toBe(true));
@@ -55,4 +69,45 @@ describe('other national checks', () => {
   it('MX RFC', () => expect(rfcCheck('GODE561231GR')).toBe('8'));
   it('BR CPF', () => expect(cpfValid('529.982.247-25')).toBe(true));
   it('mod97 on long input', () => expect(mod97('3214282912345698765432161182')).toBe(1));
+});
+
+describe('batch 1 national checks', () => {
+  it('CA SIN (Luhn)', () => expect(luhnValid('046454286')).toBe(true));
+  it('CH AHV (EAN-13)', () => expect(ean13Check('756123456789')).toBe(7));
+  it('PL PESEL', () => expect(peselCheck('4405140135')).toBe(9));
+  it('PL sort code', () => expect(plSortCodeCheck('1090101')).toBe(4));
+  it('NO fødselsnummer', () => expect(fodselsnummerChecks('151086950')).toBe('88'));
+  it('NO account', () => expect(noAccountCheck('8601111794')).toBe(7));
+  it('SE personnummer (Luhn)', () => expect(luhnValid('8803200016')).toBe(true));
+  it('SE type 1 account (Bankgirot example SE45 5000 0000 0583 9825 7466)', () => {
+    expect(seType1Valid('5839', '8257466')).toBe(true);
+    expect(isValidIbanChecksum('SE4550000000058398257466')).toBe(true);
+  });
+});
+
+describe('batch 2 national checks', () => {
+  it('HR OIB (ISO 7064 MOD 11,10)', () => expect(iso7064Mod1110('3339200596')).toBe(1));
+  it('HR bank code VBDI carries its own check digit', () => {
+    for (const vbdi of ['2360000', '2340009', '2402006', '2407000', '2484008']) expect(iso7064Mod1110(vbdi.slice(0, 6))).toBe(Number(vbdi[6]));
+  });
+  it('EE isikukood', () => expect(isikukoodCheck('3680528010')).toBe(9));
+  it('SK account (mod 11, from example IBAN SK31 1200 0000 1987 4263 7541)', () => expect(skAccountValid('8742637541')).toBe(true));
+  it('TR T.C. Kimlik', () => expect(tcKimlikChecks('172917160')).toBe('60'));
+});
+
+describe('batch 3 national checks (examples from python-stdnum documentation)', () => {
+  it('GR AFM', () => expect(afmCheck('09425921')).toBe(6));
+  it('GR AMKA (Luhn)', () => expect(luhnValid('01013099997')).toBe(true));
+  it('UA RNOKPP', () => expect(rnokppCheck('175901377')).toBe(6));
+  it('KR resident registration number', () => expect(rrnCheck('971013901990')).toBe(2));
+  it('IL Teudat Zehut (Luhn)', () => expect(luhnValid('039337423')).toBe(true));
+});
+
+describe('batch 4 national checks', () => {
+  it('NG NUBAN (CBN worked examples)', () => {
+    expect(nubanCheck('011', '000001457')).toBe(9);
+    expect(nubanCheck('011', '000000022')).toBe(0);
+  });
+  it('VE RIF (python-stdnum example)', () => expect(rifCheck('11470283')).toBe('4'));
+  it('SA Hijri date of birth', () => expect(hijriDate('1985-06-01')).toMatch(/Ramadan 12, 1405 AH/));
 });
