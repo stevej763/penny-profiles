@@ -52,15 +52,17 @@ function options(): GenerateOptions {
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
+/** Attributes that make an element copy `value` when clicked (or activated from the keyboard). */
+const copyAttrs = (value: string) => `data-copy="${esc(value)}" class="copyable" tabindex="0" role="button" title="Click to copy"`;
+
 function fieldRow(f: Field, mono = true): string {
   const copyable = !f.value.startsWith('Not used');
   return `
     <div class="field">
       <dt>${esc(f.label)}</dt>
       <dd>
-        <span dir="auto" class="${mono && copyable ? 'mono' : 'muted'}">${esc(f.value)}</span>
+        <span dir="auto" class="${mono && copyable ? 'mono' : 'muted'}"><span ${copyable ? copyAttrs(f.value) : ''}>${esc(f.value)}</span></span>
         ${f.check ? `<span class="check" title="Passes: ${esc(f.check)}">✓ ${esc(f.check)}</span>` : ''}
-        ${copyable ? `<button class="copy" data-copy="${esc(f.value)}" title="Copy">Copy</button>` : ''}
       </dd>
     </div>`;
 }
@@ -111,12 +113,11 @@ function render(p: Persona): void {
             </div>
           </div>
           <div class="view-formatted">
-            <p class="address-lines" dir="auto">${esc(formatted)}</p>
-            ${p.address.native ? `<p class="address-lines native-lines" dir="auto">${esc(p.address.native.join('\n'))}</p>` : ''}
-            <button class="copy" data-copy="${esc(formatted)}">Copy address</button>
+            <p class="address-lines" dir="auto"><span ${copyAttrs(formatted)}>${esc(formatted)}</span></p>
+            ${p.address.native ? `<p class="address-lines native-lines" dir="auto"><span ${copyAttrs(p.address.native.join('\n'))}>${esc(p.address.native.join('\n'))}</span></p>` : ''}
           </div>
           <div class="view-iso">
-            <dl class="kv">${iso.map(({ tag, name }) => `<dt title="${name}">${tag}</dt><dd>${esc(p.address.structured[tag]!)}</dd>`).join('')}</dl>
+            <dl class="kv">${iso.map(({ tag, name }) => `<dt title="${name}">${tag}</dt><dd><span ${copyAttrs(p.address.structured[tag]!)}>${esc(p.address.structured[tag]!)}</span></dd>`).join('')}</dl>
             <button class="copy" data-copy-xml>Copy XML</button>
           </div>
         </section>
@@ -170,11 +171,19 @@ form.addEventListener('submit', (e) => {
 
 countrySelect.addEventListener('change', () => form.requestSubmit());
 
+async function copy(el: HTMLElement): Promise<void> {
+  await navigator.clipboard.writeText(el.dataset.copy!);
+  el.classList.add('copied');
+  setTimeout(() => el.classList.remove('copied'), 700);
+}
+
 document.addEventListener('click', async (e) => {
   const target = e.target as HTMLElement;
   const copyBtn = target.closest<HTMLElement>('[data-copy]');
-  if (copyBtn) {
-    await navigator.clipboard.writeText(copyBtn.dataset.copy!);
+  // Leave drag-selections alone so part of a value can still be selected and copied normally.
+  const selection = window.getSelection();
+  if (copyBtn && !(selection && !selection.isCollapsed && copyBtn.contains(selection.anchorNode))) {
+    await copy(copyBtn);
     toast('Copied');
     return;
   }
@@ -192,6 +201,14 @@ document.addEventListener('click', async (e) => {
     const h = history[Number(historyBtn.dataset.history)];
     countrySelect.value = h.code;
     generate(h.code, h.seed);
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  const el = (e.target as HTMLElement).closest<HTMLElement>('.copyable');
+  if (el && (e.key === 'Enter' || e.key === ' ')) {
+    e.preventDefault();
+    void copy(el).then(() => toast('Copied'));
   }
 });
 

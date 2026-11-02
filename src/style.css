@@ -165,12 +165,13 @@ button.primary:hover { filter: brightness(1.1); color: #fff; }
 
 .address .view-iso, .address[data-view='iso'] .view-formatted { display: none; }
 .address[data-view='iso'] .view-iso { display: block; }
+.address-lines .copyable { display: inline-block; }
 .address-lines { white-space: pre-line; font-size: 0.92rem; line-height: 1.5; }
 .native-lines { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--line); color: var(--ink-soft); }
 .kv { display: grid; grid-template-columns: max-content 1fr; gap: 0.3rem 1rem; font-family: var(--mono); font-size: 0.85rem; }
 .kv dt { color: var(--muted); padding: 0; }
-.kv dd { display: block; overflow-wrap: anywhere; }
-.address .copy { margin-top: 0.75rem; font-size: 0.7rem; padding: 0.15rem 0.5rem; }
+.kv dd { display: block; overflow-wrap: break-word; min-width: 0; }
+.view-iso .copy { margin-top: 0.75rem; font-size: 0.7rem; padding: 0.15rem 0.5rem; }
 
 .card.bank { border-left: 4px solid var(--accent); }
 .card.bank h3 { font-size: 1rem; text-transform: none; letter-spacing: 0; color: var(--ink); }
@@ -181,7 +182,8 @@ dl { margin: 0; }
 .field:first-child { border-top: none; }
 dt { font-size: 0.8rem; color: var(--ink-soft); padding-top: 0.15rem; }
 dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; min-width: 0; }
-dd > span:first-child { white-space: pre-line; overflow-wrap: anywhere; }
+/* break-word (not anywhere) so short values never split mid-word; long ones still wrap. */
+dd > span:first-child { white-space: pre-line; overflow-wrap: break-word; min-width: 0; }
 .mono { font-family: var(--mono); font-size: 0.9rem; letter-spacing: 0.02em; }
 .muted { font-size: 0.9rem; }
 dd > span.muted:first-child:only-child { color: var(--muted); }
@@ -193,14 +195,15 @@ dd > span.muted:first-child:only-child { color: var(--muted); }
   color: var(--accent);
   white-space: nowrap;
 }
-dd .copy {
-  margin-left: auto;
-  font-size: 0.7rem;
-  padding: 0.15rem 0.5rem;
-  opacity: 0;
-  transition: opacity 0.12s;
+/* The highlight is a box-shadow so it takes no layout space and can't change how text wraps. */
+.copyable {
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.12s, box-shadow 0.12s;
 }
-.field:hover .copy, .copy:focus-visible { opacity: 1; }
+.copyable:hover { background: var(--accent-soft); box-shadow: 0 0 0 0.25rem var(--accent-soft); }
+.copyable:focus-visible { outline: 2px solid var(--accent); outline-offset: 0.25rem; }
+.copyable.copied { background: var(--accent); box-shadow: 0 0 0 0.25rem var(--accent); color: #fff; }
 
 .toast {
   position: fixed;
